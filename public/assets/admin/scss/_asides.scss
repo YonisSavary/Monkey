@@ -1,0 +1,36 @@
+aside 
+{
+    position: fixed;
+    top: 7rem;
+    left: 1rem;
+    @extend .f-col;
+}
+
+aside a 
+{
+    color: $foreground;
+    text-decoration: none;
+}
+
+aside h1 
+{
+    font-size: 1.3rem;
+    margin: .5rem 0;
+}
+
+aside ul 
+{
+    list-style: none;
+    padding: 0;
+}
+
+aside li 
+{
+    cursor: pointer;
+    transition: all 200ms;
+}
+
+aside li:hover
+{
+    font-size: 1.1rem;
+}

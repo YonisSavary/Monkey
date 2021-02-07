@@ -1,0 +1,27 @@
+.list-element
+{
+    padding: 1rem 1rem;
+    background-color: lighten($color-primary-2, 7);
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition: all ease 200ms;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+}
+
+.list-element *
+{
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.list-element:hover
+{
+    box-shadow: $box-shadow;
+}
+
+.list-element.clickable:hover
+{
+    cursor: pointer;
+}
