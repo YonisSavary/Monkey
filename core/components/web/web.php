@@ -7,14 +7,14 @@ use Monkey\Web\Renderer;
 function url(string $file)
 {
     $prefix = Config::get("app_prefix");
-    if ($prefix === null) $prefix = "/assets";
+    if ($prefix === null) $prefix = "/";
     if (substr($prefix, -1) !== "/") $prefix .= "/";
     return $prefix.$file;
 }
 
 function include_file(string $template_name)
 {
-    return Renderer::render($template_name, false);
+    return Renderer::render($template_name, $GLOBALS["m_render_vars"], false);
 }
 
 function router(string $routeName)

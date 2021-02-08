@@ -67,10 +67,11 @@ class Renderer
      * Render a PHP template
      * 
      * @param string $template_name template name we are looking for
-     * @param bool $flush If set to `false`, this function return the buffer without displaying it
+     * @param bool $flush If set to `true' the function return a `Response` object
      */
-    public static function render(string $template_name, bool $flush=true) : mixed
+    public static function render(string $template_name, mixed $vars=null, bool $flush=true) : mixed
     {
+        $GLOBALS["m_render_vars"] = $vars;
         $path = Renderer::find_template($template_name);
         if ($path === null) Trash::handle($template_name . " template does not exists !");
         ob_start();

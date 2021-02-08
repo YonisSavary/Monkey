@@ -38,4 +38,13 @@ Renderer::render("home");
 
 &lt;?=php router("loginPage") ?&gt;
 </pre>
+    <h2>Passing Variables to Renderer</h2>
+    <p>There is a quick way to pass variables to the <code>Renderer</code> class</p>
+<pre>
+Renderer::render("home", ["app-name"=>"MonkeyExample"]);
+</pre>
+    <p>You can access <code>app-name</code> with this instruction</p>
+<pre>
+&lt;?= $vars["app-name"] ?&gt; // Will display "MonkeyExample"
+</pre>
 </section>

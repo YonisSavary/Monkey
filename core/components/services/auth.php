@@ -55,6 +55,7 @@ class Auth
         Auth::$model = $model;
         Auth::$login_field = $login_field;
         Auth::$pass_field = $pass_field;
+
     }
 
 
@@ -91,14 +92,30 @@ class Auth
     {
         if (Auth::check($login, $password))
         {
+            $_SESSION["m_auth_attempt"] = 0;
             $u = Auth::$model->get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
             Auth::login($u[0]);
             return true;
         } else {
+            if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
+            $_SESSION["m_auth_attempt"]++;
             Auth::logout();
             return false;
         }
     }
+
+
+
+
+    /**
+     * Get the total failed attempts number
+     */
+    public static function attempts() : int 
+    {
+        return $_SESSION["m_auth_attempt"];
+    }
+
+
 
 
 
