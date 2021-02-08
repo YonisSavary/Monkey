@@ -30,7 +30,7 @@ and then go to `localhost:3000/admin/documentation` and tada ! Everything's here
 Monkey try to be the simplest possible, an empty Monkey projet contains :
 * `app` : your MVC files
 * `config` : your serialized config objects
-* `app` : core, pretty explicit (Monkey core + admin interface)
+* `core` : core, pretty explicit (Monkey core + admin interface)
 * `public` : public directory with `index.php` and the assets directory
 
 ## Is Composer available ?
