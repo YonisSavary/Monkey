@@ -47,7 +47,7 @@ class m_api_route
         $params = API::retrieve($req, ["route"]);
         $new_route = (array) json_decode($params["route"]);
         
-        $error = m_api_route::check_route_integrity($new_route, true);
+        $error = m_api_route::check_route_integrity($new_route);
         if ($error instanceof Response) return $error;
         m_api_route::clean_a_route($new_route);
         Router::add($new_route["path"], $new_route["callback"], $new_route["name"], $new_route["middlewares"], $new_route["methods"]); 

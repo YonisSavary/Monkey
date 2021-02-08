@@ -92,7 +92,7 @@ class Auth
         if (Auth::check($login, $password))
         {
             $u = Auth::$model->get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
-            Auth::login($u);
+            Auth::login($u[0]);
             return true;
         } else {
             Auth::logout();

@@ -201,7 +201,7 @@ abstract class Model
             array_push($fields_str, "$f='".$this->$f."'");
         }
         $query = "UPDATE " . $this->table . " SET ". join(",", $fields_str) . " WHERE $primary='" . $this->$primary . "';";
-        DB::execute($query);
+        DB::query($query);
     }
 
 }

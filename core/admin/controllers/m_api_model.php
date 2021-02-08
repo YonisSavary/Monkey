@@ -40,7 +40,7 @@ class m_api_model
         $classes = get_declared_classes();
         $classes = array_filter($classes, function(string $class_name)
         {
-            return strpos($class_name, "Model\\");
+            return strpos($class_name, "Models\\");
         });
         return $classes;
     }
@@ -48,14 +48,14 @@ class m_api_model
     public static function model_exists(string $table)
     {
         $class_name = m_api_model::clean_name($table);
-        $class_with_namespace = "Model\\$class_name";
+        $class_with_namespace = "Models\\$class_name";
         return class_exists($class_with_namespace, false);
     }
 
     public static function get_model_path(string $table_name)
     {
         $class_name = m_api_model::clean_name($table_name);
-        $class_with_namespace = "Model\\$class_name";
+        $class_with_namespace = "Models\\$class_name";
         if (class_exists($class_with_namespace, false))
         {
                 $r = new \ReflectionClass($class_with_namespace);
@@ -92,7 +92,7 @@ class m_api_model
 
         $model = "<?php
 
-namespace Model;
+namespace Models;
 
 use Monkey\Model;
 
@@ -160,7 +160,7 @@ class $model_name extends Model {
     public function delete(Request $req): Response
     {
         $params = API::retrieve($req, ["model"]);
-        $model = "Model\\".$params["model"];
+        $model = "Models\\".$params["model"];
         if (!class_exists($model, false)) API::error("Inexistant model !");
         $r = new \ReflectionClass($model);
         $path = $r->getFileName();
