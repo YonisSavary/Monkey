@@ -9,14 +9,18 @@ label
     margin: 0.1rem 0;
 }
 
-input[type="text"], input[type="password"], input[type="number"]
+input[type="text"], 
+input[type="password"], 
+input[type="number"]
 {
     font-size: .9rem;
     font-family: $font;
-    padding: 0.3rem;
+    padding: 0.3rem .5rem;
     border: 1px solid #CCC;
+    border-radius: .5rem;
     background-color: rgba(255,255,255,.8);
     max-width: 400px;
+    outline: none;
 }
 
 .button 

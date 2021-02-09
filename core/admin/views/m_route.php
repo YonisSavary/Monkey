@@ -71,13 +71,13 @@
             <p class="warning-section">
                 This function check if sent routes already exists, existing routes are not replaced !
             </p>
-            <form action="<?= router("m_api_route_import")."?password=".Monkey\Config::get("admin_api_password") ?>" enctype="multipart/form-data" method="POST" class="f-col">
+            <form action="<?= router("m_api_route_import")."?password=".Monkey\Config::get("admin_password") ?>" enctype="multipart/form-data" method="POST" class="f-col">
                 <input id="fileinput" type="file" name="routesfiles" id="">
                 <label for="fileinput" class="button green">Choose a file</label>
                 <input type="submit" value="Send" class="button green">
             </form>
         <h2>Export</h2>
-        <a href="<?= router("m_api_route_export")."?password=".Monkey\Config::get("admin_api_password") ?>" class="button green">Download</a>
+        <a href="<?= router("m_api_route_export")."?password=".Monkey\Config::get("admin_password") ?>" class="button green">Download</a>
     </section>
 
 

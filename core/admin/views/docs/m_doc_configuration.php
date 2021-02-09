@@ -124,7 +124,7 @@ Config::get_discrete("foo") // "yes"
                     <td>true</td>
                 </tr>
                 <tr>
-                    <td><code>admin_api_password</code></td>
+                    <td><code>admin_password</code></td>
                     <td>Password for the admin CRUD API</td>
                     <td></td>
                 </tr>
