@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= url("admin/css/monkey.css") ?>">
-    <title>Document</title>
+    <title>Monkey Administration</title>
 </head>
 <body class="fullscreen">
     <h1>Monkey</h1>
