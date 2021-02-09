@@ -4,6 +4,7 @@ namespace Monkey\Services;
 
 use Kernel\ModelParser;
 use Monkey\Config;
+use Monkey\Router;
 use Monkey\Web\Trash;
 
 
@@ -56,6 +57,17 @@ class Auth
         Auth::$login_field = $login_field;
         Auth::$pass_field = $pass_field;
 
+        if (Auth::is_logged())
+        {
+            if ($_SESSION["m_auth_duration"] === 0){
+                Auth::logout();
+            } else {
+                $_SESSION["m_auth_duration"] +=  Config::get("auth_hop_duration", 300);
+                if ($_SESSION["m_auth_duration"] > Config::get("auth_duration")){
+                    $_SESSION["m_auth_duration"] =  Config::get("auth_duration", 3600);
+                }
+            }
+        }
     }
 
 
@@ -127,6 +139,7 @@ class Auth
         $_SESSION["m_auth_user"] = $user;
         $_SESSION["m_auth_logged"] = true;
         $_SESSION["m_auth_token"] = bin2hex(random_bytes(32));
+        $_SESSION["m_auth_duration"] =  Config::get("auth_duration", 3600);
     }
 
 
