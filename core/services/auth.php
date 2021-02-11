@@ -2,9 +2,8 @@
 
 namespace Monkey\Services;
 
-use Kernel\ModelParser;
+use Kernel\Model\ModelParser;
 use Monkey\Config;
-use Monkey\Router;
 use Monkey\Web\Trash;
 
 
