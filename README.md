@@ -521,7 +521,7 @@ the purpose of models is to have a structural copy of your tables
 
 Here is an example of model :
 <pre>
-<?php
+&lt;?php
 
 namespace Models;
 
@@ -632,18 +632,18 @@ while making your templates
 // Add your app url prefix to the first parameter
 // "app_prefix" in monkey.json
 
-<?=php url("assets/someExample/app.css") ?>
+&lt;?=php url("assets/someExample/app.css") ?>
 
 // Can render a template inside another
 // For example, every sections of the documentations
 // are separated into multiples files
 
-<?=php include_file("another/file") ?>
+&lt;?=php include_file("another/file") ?>
 
 // This function can find the path to a route if it 
 // has a name, if no route was found, "/loginPage" would be return in this example
 
-<?=php router("loginPage") ?>
+&lt;?=php router("loginPage") ?>
 </pre>
     
     
@@ -654,7 +654,7 @@ Renderer::render("home", ["app-name"=>"MonkeyExample"]);
 </pre>
 You can access `app-name` with this instruction
 <pre>
-<?= $vars["app-name"] ?> // Will display "MonkeyExample"
+&lt;?= $vars["app-name"] ?> // Will display "MonkeyExample"
 </pre>
     
 
@@ -683,27 +683,13 @@ Monkey include a simple authentication class
 `Monkey\Services\Auth` need 4 keys to be configured in 
 your `monkey.json` file :
 
-<table>
-<tbody>
-
-<td>`auth_enabled`</td>
-<td>Is the auth service enabled ?</td>
-
-
-<td>`auth_model`</td>
-<td>Model class name for users</td>
-
-
-<td>`auth_login_field`</td>
-<td>Unique field used to authenticate users (can be email, login, phone...etc)</td>
-
-
-<td>`auth_pass_field`</td>
-<td>field name where password are stored</td>
-
-</tbody>
-</table>
-    
+| key | purpose |
+|-----|---------|
+| `auth_enabled` | Is the auth service enabled ? |
+| `auth_model` | Model class name for users |
+| `auth_login_field` | Unique field used to authenticate users (can be email, login, phone...etc) |
+| `auth_pass_field` | field name where password are stored |
+  
     
 ## Usage
 
