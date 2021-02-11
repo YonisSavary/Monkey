@@ -16,22 +16,7 @@ Monkey is meant to be simple to use/configure, so, it has it own little administ
 
 ## Where's the documentation ?
 
-To access Monkey's documentation, you need to clone this repository and start a development PHP server 
-
-<pre>
-cd public
-php -S localhost:3000
-</pre>
-
-and then go to `localhost:3000/admin/documentation` and tada ! Everything's here !
-
-## How's made the folder hierarchy ?
-
-Monkey try to be the simplest possible, an empty Monkey projet contains :
-* `app` : your MVC files
-* `config` : your serialized config objects
-* `core` : core, pretty explicit (Monkey core + admin interface)
-* `public` : public directory with `index.php` and the assets directory
+In Monkey-light, the documentation is in `docs.html`
 
 ## Is Composer available ?
 

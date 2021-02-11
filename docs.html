@@ -1,0 +1,896 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/admin/css/monkey.css">
+    <title>Monkey-Light Documentation</title>
+</head>
+<body>
+<main>
+    <article >
+        <h1>Hello There !</h1>
+        <strong>Thanks For Trying Monkey</strong>
+        <p>
+            This page will teach you how to use Monkey and its components,
+            don't worry, it is made to be simple !
+        </p>
+    </article>
+
+    <article>
+        <h1>Summary</h1>
+        <ul>
+            <li><a href="#m_hierarchy">Request Lifecycle</a></li>
+            <li><a href="#m_lifecycle">Request Lifecycle</a></li>
+            <li><a href="#m_config">Configuration</a></li>
+            <li><a href="#m_register">Register</a></li>
+            <li><a href="#m_routing">Routing</a></li>
+            <li><a href="#m_database">Database</a></li>
+            <li><a href="#m_models">Models</a></li>
+            <li><a href="#m_controllers">Controllers</a></li>
+            <li><a href="#m_views">Views</a></li>
+            <li><a href="#m_auth">Authentication</a></li>
+        </ul>
+    </article>
+
+
+    <article id="m_hierarchy">
+        <section>
+            <h1>Monkey Hierarchy</h1>
+            <p>
+                Let's explains how a Monkey project look like, the file hierarchy was made 
+                to be the simplest possible so we can't be lost : 
+            </p>
+        </section>
+        <section>
+            <h2>Directories</h2>
+            <ul>
+                <li>app : your MVC application, with models/views/controllers AND middlewares</li>
+                <li>config : the holdall of json files except the framework configuration</li>
+                <li>core : Monkey core files, which are meant to be simples and well-documented, it is made to let you edit features at will </li>
+                <li>public : Public PHP directory, supposed to host <code>index.php</code> and your assets</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Namespaces</h2>
+            <p>Here are the differents namespaces you may see/use, I won't explain the explicits ones : </p>
+            <table>
+                <tr><td>Models\</td><td></td></tr>
+                <tr><td>Controllers\</td><td></td></tr>
+                <tr><td>Middlewares\</td><td></td></tr>
+                <tr><td>Monkey\</td><td> The main Monkey components with no specifics fields </td></tr>
+                <tr><td>Monkey\Services\</td><td> So far, only the <code>Auth</code> component is in this namespace</td></tr>
+                <tr><td>Monkey\Web\</td><td> Everything that touch to the Http Requests/Responses</td></tr>
+                <tr><td>Monkey\Dist\</td><td> <code>DB</code> and <code>Query</code> components</td></tr>
+                <tr><td>Monkey\Model\</td><td> <code>Model</code> and <code>ModelParser</code> components</td></tr>
+            </table>
+        </section>
+    </article>
+
+
+
+
+
+
+
+    <article id="#m_lifecycle">
+        <h1>Request Lifecycle</h1>
+        <p>
+            Here is how a request is processed by Monkey :
+        </p>
+        <ol>
+            <li>A Request comes to `index.php`</li>
+            <li><code>index.php</code> initialize Monkey components and call the router</li>
+            <li><code>Monkey\Router</code> go through all your routes and compare the request path</li>
+            <li>If found, the middlewares and callback are called with a <code>Monkey\Web\Request</code> object argument
+            <br>If not found : <code>Trash</code> is called to display an error</li>
+            <li>If the callback return a <code>Response</code> object, its content is displayed</li>
+        </ol>
+    </article>
+
+
+
+
+
+
+
+
+
+    <article id="#m_config">
+        <h1>Configuration</h1>
+        <section>
+            <h2>How to configure Monkey ?</h2>
+            <p>
+                The framework configuration is stored in <code>monkey.json</code>
+                and read by the <code>Monkey\Config</code> component when <code>Config::init()</code> is called,
+                here are some functions you may find interesting
+            </p>
+<pre>// Basics function, you can set and get specifics keys 
+// from your configuration
+
+Config::set("foo", "no");
+Config::get("foo"); // no
+
+// Save the current configuration in monkey.json
+// You can define which key needs to be excluded
+
+Config::save();
+Config::save(["foo", "bar"])
+
+// How to check if a key is present in your configuration
+// You can also check for multiples keys
+
+Config::exists("foo");
+Config::multiple_exists(["foo", "bar"]);
+
+
+// This line is automatically called in monkey.php
+// But you can call it to get the file configuration without
+// saving it in the component storage
+
+Config::init();
+$configuration = Config::init(true);
+</pre>
+    </section>
+
+    <section>
+        Note : The Configuration is stored in <code>$GLOBALS["monkey"]["config"]</code>
+    </section>
+
+    <section>
+        <h2>List of all configurable framework keys</h2>
+        <table>
+            <tr>
+                <th>Key Name</th>
+                <th>Purpose</th>
+                <th>Default (if any)</th>
+            </tr>
+
+            <tr>
+                <td><code>register_store</code></td>
+                <td>Directory where <code>Monkey\Register</code> store its files</td>
+                <td>"./config"</td>
+            </tr>
+            <tr>
+                <td><code>app_directory</code></td>
+                <td>Directory where Monkey look for app files</td>
+                <td>"./app"</td>
+            </tr>
+            <tr>
+                <td><code>cached_apploader</code></td>
+                <td>
+                    Does the apploader cache its directories with <code>Monkey\Register</code>
+                    not advised in dev environment (can save you some times)
+                </td>
+                <td>false</td>
+            </tr>
+            <tr>
+                <td><code>db_enabled</code></td>
+                <td>Do Monkey create a connection to a database ?</td>
+                <td>false</td>
+            </tr>
+            <tr>
+                <td><code>db_driver</code></td>
+                <td>Driver used by PDO</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>db_host</code></td>
+                <td>Host of the database</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>db_port</code></td>
+                <td>DB Service port (usually 3306)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>db_name</code></td>
+                <td>Database name</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>db_user</code></td>
+                <td>Database login</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>db_pass</code></td>
+                <td>Database user password</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><code>app_prefix</code></td>
+                <td>URL prefix (pretty useful for assets files url)</td>
+                <td></td>
+            </tr>
+        </table>
+    </section>
+
+
+    <section>
+        <h2>Organize your configuration !</h2>
+        <p>
+            One of the norms for web devs is to have a file named <code>dist.json</code>, Monkey did 
+            not forgot you and allow you to divide your configuration into multiples files ! 
+        </p>
+        <p>
+            Assuming we have <code>monkey.json</code> and we want to create a <code>dist.json</code>
+            for our connection configuration, one way to do that is to add this in <code>monkey.json</code> :
+        </p>
+<pre>
+    "extra_config" : "dist.json"
+</pre>
+    <p>But we can do more ! We can also create this kind of structure to divide a configuration into themed-files</p>
+<pre>
+    "extra_config" : [
+        "cfg/dist.json",
+        "cfg/monkey.json",
+        "cfg/auth.json"
+    ]
+</pre>
+    </section>
+
+    <section>
+        <h2>Organize your application ! </h2>
+        <p>
+            Monkey Allow you to have multiples MVC applications connected to the framework ! <br>
+            Let's assume that we have two directories at the project root, let's call them 
+            <code>app_users</code> and <code>app_admin</code>, both of them have theirs MVC 
+            directories, just like they were 2 separated apps. <br>
+            You can combine them by setting this in <code>monkey.json</code>
+        </p>
+<pre>
+    "app_directory" : ["./app_users", "./app_admin"]
+</pre>
+        <p>
+            Notes : 
+            <ul>
+                <li>
+                    Views Directories are shared, one application can access the views of another, so be 
+                    aware when naming your views
+                </li>
+                <li>
+                    Change may not be visible at first, be sure to refresh your cache by either 
+                    setting <code>cached_apploader</code> to <code>false</code> in <code>monkey.json</code>,
+                    or by deleting <code>config/apploader.json</code> if you do not want to disable it
+                </li>
+            </ul>
+        </p>
+    </section>
+
+    <section>
+        <h2>Discrete Configuration elements</h2>
+        <p>
+            Discretes elements can be stored in your configurations, they have the same purpose
+            at the basics one, but they are temporary as they are not stored in <code>monkey.json</code> file 
+        </p>
+
+<pre>Config::exists_discrete("foo")
+Config::set_discrete("foo", "yes")
+Config::get_discrete("foo") // "yes"
+</pre>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_register">
+    <section>
+        <h1>Register</h1>
+        <p>
+            The Monkey register is here to store your data and retrieve it quickly, to summarize it :
+            it's an interface with JSON objects stored in files, for example : Monkey use 
+            the register to store your application's routes
+        </p>
+        <p>
+            Most of the register functions are similar to the <code>Monkey\Config</code> one
+        </p>
+<pre>// Set the foo key to the given array and save a .json file
+Register::set("foo", ["bar"=&gt;"blah"])
+
+// Get the foo bar
+Register::get("foo")
+
+// Initialize the component
+// Create the store directory if inexistant and load its content
+Register::init()
+
+// Write the content of the "foo" key into a ser file 
+// Note : this function is automatically called by 'set'
+Register::write("foo")
+
+// Load the .json files into the register 
+// Note : this function is automatically called by 'init'
+Register::load_files()
+</pre>
+    </section>
+    <section>
+    Note : The directory where the .json files are stored can be edited by changing <code>register_store</code>
+    in monkey.json
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_routing">
+    <section>
+        <h1>Routing</h1>
+        <p>
+            Monkey routes are stored in <code>config/routes.json</code> by default
+            <br>
+            A route is defined by 2 mandatory and 3 optionnals properties :
+            </p><ul>
+                <li>path : the url to your route</li>
+                <li>callback : the function to call (format : "controllerName-&gt;methodName")</li>
+                <li>name (optionnal) : a name for your route, useful when templating</li>
+                <li>methods (optionnal) : allowed HTTP methods (GET, POSTS, PUT ...)</li>
+                <li>middlewares (optionnal) : names of the middlewares classes to call</li>
+            </ul>
+            <p>
+                Here is an full-example 
+            </p>
+<pre>
+{
+    "path": "/someExample",
+    "callback": "ExampleController->someMethod",
+    "name": "TheExampleRoute",
+    "methods": ["PUT", "POST"] ,
+    "middlewares": ["middlewareClass1", "middlewareClass2"]
+}
+</pre>
+
+            <section>
+                Note : When a route callback is called, a <code>Monkey\Web\Request</code> object is given in parameter,
+                containing most of the request informations
+                <br>
+                PS : Also, if a request don't respect a route methods, it is skipped and don't raise any error, with that 
+                you can define multiples routes with the same path but with differents allowed methods
+            </section>
+    
+    </section>
+    <section>
+        <h2>Slugs</h2>
+        <p>
+            You can define slugs in your route path : here is an example
+        </p>
+<pre>// Assuming your route path is "/person/{firstname}/{lastname}"
+// And your request path is    "/person/dwight/schrute"
+// You can access it by doing it 
+
+// This function is in a controller
+function someName(Request $req)
+{
+    $req-&gt;slugs["firstname"] // return "dwight"
+    $req-&gt;slugs["lastname"]  // return "schrute"
+}
+</pre>
+    </section>
+    <section>
+        <h2>Middlewares</h2>
+        <p>
+            A middleware is just a class in the <code>Middlewares</code> namespace, having a 
+            <code>handle</code> function, when a middleware is in a routes middlewares list, its <code>handle</code> function 
+            is called with the current <code>Monkey\Web\Request</code> as first parameter, it can either :
+            <ul>
+                <li>Return a Response that is instantly displayed</li>
+                <li>Redirect a request with <code>Router::redirect</code></li>
+                <li>Do nothing when everything's right</li>
+            </ul>
+        </p>
+    </section>
+    <section>
+        <h2>The Router Component</h2>
+        <p>
+            With this feature comes the <code>Monkey\Router</code> component, which have theses functions
+        </p>
+<pre>// Redirect the current request
+Router::redirect("/somePath");
+
+// Save the currents routes with the Register
+Router::save();
+
+// Initialize the component
+// Read the routes in the registers
+// And add the admin interface routes if the feature is enabled
+Router::init();
+
+// Get a path regex for a path 
+// Useful when a route path has slugs 
+Router::get_regex("/somePath/{someSlugs}");
+
+// Given parameters, return a route object
+Router::get_route();
+
+// Add a temporary route, which is not saved 
+// in the register
+Router::add_temp();
+
+// Add a route and save it
+Router::add();
+
+// Remove a route, by its name or path
+Router::remove("/somePath");
+Router::remove("orAName");
+
+// Given a route path and a request path  
+// this function return an array containing 
+// the slugs names and their values
+Router::build_slugs();
+
+// Route the current HTTP request
+Router::route_current();
+</pre>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_database">
+    <section>
+        <h1>Database</h1>
+        <p>
+            There are several keys that need to be edited in <code>monkey.json</code> :
+            </p>
+            
+            <table>
+                <tbody>
+                    <tr>
+                    <th>Key</th>
+                    <th>Role</th>
+                    </tr>
+                    <tr>
+                        <td>db_enabled</td>
+                        <td>Is the service enabled ?</td>
+                    </tr>
+                    <tr>
+                        <td>db_driver</td>
+                        <td>driver name for <code>PDO</code></td>
+                    </tr>
+                    <tr>
+                        <td>db_host</td>
+                        <td>IP of the distant machine</td>
+                    </tr>
+                    <tr>
+                        <td>db_port</td>
+                        <td>Port of the db service (usually 3306)</td>
+                    </tr>
+                    <tr>
+                        <td>db_name</td>
+                        <td>Database name</td>
+                    </tr>
+                    <tr>
+                        <td>db_user</td>
+                        <td>Login to log with</td>
+                    </tr>
+                    <tr>
+                        <td>db_pass</td>
+                        <td>Password for the user</td>
+                    </tr>
+                </tbody>
+            </table>
+        <p>
+            The composant to prepare and execute query is <code>Monkey\DB</code> :
+        </p>
+<pre>// Initialize the component, create a connection and throw 
+// an error if something went wrong
+DB::init();
+
+// Return a bool to "are we connected to the database ?"
+DB::check_connection();
+
+// Prepare a query and store it in the DB component
+DB::prepare(string $request);
+
+// Bind a value on the stored query
+// Note : the used function is "bindParam"
+DB::bind(string $bind, mixed $value);
+
+// Execute the prepared query and return the results 
+// (or an empty array)
+DB::execute();
+
+// Execute the prepared query and return the results 
+// (or an empty array)
+// Note: you can specify the fetch mode for PDO
+DB::query(string $query, int $mode=PDO::FETCH_ASSOC);
+</pre>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_models">
+    <section>
+        <h1>Models</h1>
+        <h2>The Query class </h2>
+        <p>
+            <code>Monkey\Query</code> was made to be a SQL query builder class, it usage is pretty simple, it can handle 
+            4 types of queries : <code>INSERT</code>, <code>SELECT</code>, <code>UPDATE</code>, <code>DELETE</code>, here are 
+            some examples :
+        </p>
+        <section>
+            Query modes constants are made on a CRUD name system, so :
+            <ul>
+                <li><code>Query::CREATE</code> is an <code>INSERT</code> query</li>
+                <li><code>Query::READ</code> is an <code>SELECT</code> query</li>
+                <li><code>Query::UPDATE</code> is an <code>UPDATE</code> query</li>
+                <li><code>Query::DELETE</code> is an <code>DELETE FROM</code> query</li>
+            </ul>
+        </section>
+<pre>// Insert values in a table
+$q = new Query("tableName", ["firstname", "name"], Query::CREATE);
+$q-&gt;values("big", "chungus");
+$results = $q-&gt;exec();
+
+// Make a SELECT query 
+// Note the query constructor have Query::READ as a default value for the 3rd parameter
+$q = new Query("tableName", ["firstname","name"], Query::READ);
+$q-&gt;where("firstname", "big");
+$q-&gt;limit(1);
+$results = $q-&gt;exec();
+
+// Make a UPDATE query 
+$q = new Query("tableName", [], Query::UPDATE);
+$q-&gt;set("name", "boii");
+$q-&gt;where("firstname", "big");
+$q-&gt;exec();
+
+// Make a DELETE query
+$q = new Query("tableName", [], Query::DELETE);
+$q-&gt;where("firstname", "big")-&gt;and()-&gt;where("name", "boii");
+$q-&gt;exec();
+</pre>
+        <section>
+            If you don't want to execute the query, you can simply call <code>build</code>, to retrieve
+            it
+        </section>
+    </section>
+    <section>
+        <h2>Precisions</h2>
+        <p>
+            You may have noticed, on the last query, we used the <code>and</code> function, this one, 
+            and the <code>or</code> are made to make your query more readable, so you can add multiples
+            conditions more easily
+        </p>
+<pre>$q-&gt;where("firstname", "boo")-&gt;or()-&gt;where("name", "barrr");
+</pre>
+    </section>
+    <section>
+        <h2>Models</h2>
+
+        <strong>
+        Monkey philosophy on the models is : your application shouldn't define what your database has to look like, 
+        the purpose of models is to have a structural copy of your tables
+        </strong>
+
+        <p>Here is an example of model :</p>
+<pre>&lt;?php
+
+namespace Models;
+
+use Monkey\Model;
+
+class Users extends Model {
+    protected $table="users";
+    protected $primary_key="id";
+    public $id;
+    public $name;
+}
+</pre>
+        <p>
+            The structure is simple, every public fields of your class defines your model fields,
+            and the others are used in it internal process.
+        </p>
+        <p>
+            The abstract class <code>Monkey\Model</code> has a few functions linked to the <code>Monkey\Query</code> ones :
+        </p>
+<pre>$modelObject = new User();
+$modelObject-&gt;get("id", "name");
+$modelObject-&gt;getAll();
+$modelObject-&gt;update();
+$modelObject-&gt;insert();
+$modelObject-&gt;delete();
+</pre>
+        <p>
+            All of theses functions return a Query object pre-filled with your model informations, also when you are creating 
+            your model object, the <code>Monkey\Model</code> create a <code>Monkey\ModelParser</code> object, which is used to 
+            parse the results objects.
+        </p>
+        <section>
+            Note : the Monkey models are still in progress
+        </section>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_controllers">
+    <h1>Controllers</h1>
+    <p>
+        Controllers are simple, there is only one constraint, it has to be in the 
+        <code>Controllers</code> namespace, then you can create public functions to its 
+        and use its in your routes
+    </p>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_views">
+    <section>
+        <h1>Views</h1>
+        <p>
+            PHP is already a template engine, so we didn't put one more,
+            Monkey has one class that may help you to do render PHP templates
+        </p>
+        <p>
+            Assuming that we created a file named <code>app/views/home.php</code>, we can 
+            render it by calling :
+        </p>
+<pre>use Monkey\Web\Renderer;
+Renderer::render("home");
+</pre>
+        <section>
+            This function act in a recursive way, so you can move your templates
+            into subfolders it won't be a problem
+        </section>
+    </section>
+    <section>
+        <h2>Little helpers (Rendering Functions)</h2>
+        <p>
+            Depsite PHP being a template engine, we added some functions to help you out 
+            while making your templates
+        </p>
+<pre>// Add your app url prefix to the first parameter
+// "app_prefix" in monkey.json
+
+&lt;?=php url("assets/someExample/app.css") ?&gt;
+
+// Can render a template inside another
+// For example, every sections of the documentations
+// are separated into multiples files
+
+&lt;?=php include_file("another/file") ?&gt;
+
+// This function can find the path to a route if it 
+// has a name, if no route was found, "/loginPage" would be return in this example
+
+&lt;?=php router("loginPage") ?&gt;
+</pre>
+    </section>
+    <section>
+        <h2>Passing Variables to Renderer</h2>
+        <p>There is a quick way to pass variables to the <code>Renderer</code> class</p>
+<pre>Renderer::render("home", ["app-name"=&gt;"MonkeyExample"]);
+</pre>
+    <p>You can access <code>app-name</code> with this instruction</p>
+<pre>&lt;?= $vars["app-name"] ?&gt; // Will display "MonkeyExample"
+</pre>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article id="#m_auth">
+    <section>
+            <h1>Authentication</h1>
+            <p>
+                Monkey include a simple authentication class
+            </p>
+        <h2>Configuration</h2>
+        <p>
+            <code>Monkey\Services\Auth</code> need 4 keys to be configured in 
+            your <code>monkey.json</code> file :
+        </p>
+        <table>
+            <tbody>
+                <tr>
+                    <td><code>auth_enabled</code></td>
+                    <td>Is the auth service enabled ?</td>
+                </tr>
+                <tr>
+                    <td><code>auth_model</code></td>
+                    <td>Model class name for users</td>
+                </tr>
+                <tr>
+                    <td><code>auth_login_field</code></td>
+                    <td>Unique field used to authenticate users (can be email, login, phone...etc)</td>
+                </tr>
+                <tr>
+                    <td><code>auth_pass_field</code></td>
+                    <td>field name where password are stored</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Usage</h2>
+        <p>
+            <code>Auth</code> usage is meant to be simple 
+        </p>
+<pre>use Monkey\Services\Auth;
+
+// Can create a new password (BCRYPT with a cost of 8 by default)
+Auth::create_password();
+
+// Check if the password of "admin" is "somePassword" in your database
+// and return the result
+Auth::check("admin", "somePassword");
+
+// Try to connect as "admin" using "somePassword", return true if the 
+// authentication was successful
+Auth::attempt("admin", "somePassword");
+
+// Directly log a user with its model object
+Auth::login($userObject);
+
+// Logout a user if one is actually authenticated
+Auth::logout();
+
+// Is the current client authenticated ?
+Auth::is_logged();
+
+// Get the Model object stored in the SESSION
+Auth::get_user();
+</pre>
+    </section>
+    <section>
+        <h2>Token</h2>
+        <p>
+            When a user is logged, a 64-random-characters string is created in the session, 
+            and can be recovered with
+        </p>
+<pre>use Monkey\Services\Auth;
+Auth::token();
+
+// Can give : 272143223ac0bd8a2448e2c0bf7143e0f1580a9f3e23823c80df2e3a4423f5b4
+// for example
+
+</pre>
+    </section>
+</article>
+
+
+
+
+
+
+
+
+
+
+
+
+    <style>
+
+
+    html, body 
+    {
+        max-width: 800px;
+        padding: 2rem;
+    }
+
+    h1 { font-size: 2rem; padding: 1rem 0; }
+    
+    pre, code 
+    {
+        color: #00A;
+        font-weight: bold;   
+    }
+
+    article
+    {
+        padding-bottom: 2.5rem;
+        margin-bottom: 2.5rem;
+        border-bottom: 1px black solid ;
+    }
+
+    section 
+    {
+        margin-bottom: 3rem;
+    }
+
+    td, th
+    {
+        border : solid 1px black;
+        padding: .3rem;
+    }
+
+    table
+    {
+        border-collapse: collapse;
+    }
+
+    </style>
+</main>
+
+</body></html>

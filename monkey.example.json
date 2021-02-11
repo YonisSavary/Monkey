@@ -1,0 +1,20 @@
+{
+    "register_store":"./config",
+	"app_directory":"./app",
+	"cached_apploader":false,
+
+	"db_enabled":true,
+	"db_driver":"mysql",
+	"db_host":"127.0.0.1",
+	"db_port":"3306",
+	"db_name":"dbname",
+	"db_user":"root",
+	"db_pass":"secret",
+
+	"app_prefix":"/assets",
+	
+	"auth_enabled":false,
+	"auth_model":"Users",
+	"auth_login_field":"login",
+	"auth_pass_field":"pass"
+}
