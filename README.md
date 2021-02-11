@@ -1,10 +1,11 @@
+# Monkey | Light MVC Framework 
 
-# Hello There !
-
-**Thanks For Trying Monkey**
+## Hello There !
 
 This page will teach you how to use Monkey and its components,
 don't worry, it is made to be simple !
+
+**Thanks For Trying Monkey**
 
 
 
