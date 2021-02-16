@@ -8,7 +8,7 @@ use PDO;
 use PDOException;
 
 class DB {
-
+    static $do_return = true;
     static $connection;
     static $configuration = [];
 
@@ -116,9 +116,8 @@ class DB {
         $statement = DB::$connection->query($query);
         if ($statement->rowCount() > 0)
         {
-            return $statement->fetchAll($mode);
-        } else {
-            return [];
+            if (DB::$do_return === true) return $statement->fetchAll($mode);
         }
+        return [];
     }
 }
