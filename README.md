@@ -547,15 +547,16 @@ $modelObject->get("id", "name");
 $modelObject->getAll();
 $modelObject->update();
 $modelObject->insert();
-$modelObject->delete();
+$modelObject->delete_from();
 </pre>
+
+**Note : `delete_from` build a query to delete from a table, the `delete` method 
+delete an object following it primary key**
 
 All of theses functions return a Query object pre-filled with your model informations, also when you are creating 
 your model object, the `Monkey\Model` create a `Monkey\ModelParser` object, which is used to 
 parse the results objects.
 
-        
-Note : the Monkey models are still in progress
         
     
 
@@ -737,61 +738,9 @@ Auth::token();
 // for example
 
 </pre>
-    
 
+## Middleware 
 
-
-
-
-
-
-
-
-
-
-
-
-<style>
-
-
-    html, body 
-    {
-        max-width: 800px;
-        padding: 2rem;
-    }
-
-    h1 { font-size: 2rem; padding: 1rem 0; }
-    
-    pre, code 
-    {
-        color: #00A;
-        font-weight: bold;   
-    }
-
-    article
-    {
-        padding-bottom: 2.5rem;
-        margin-bottom: 2.5rem;
-        border-bottom: 1px black solid ;
-    }
-
-    section 
-    {
-        margin-bottom: 3rem;
-    }
-
-    td, th
-    {
-        border : solid 1px black;
-        padding: .3rem;
-    }
-
-    table
-    {
-        border-collapse: collapse;
-    }
-
-</style>
-</main>
-
-</body></html>
+By default, Monkey includes a little middleware that you can use/edit/delete, it 
+is stored in `app/middlewares` and reject to another path every unauthenticated client 
+on a route
