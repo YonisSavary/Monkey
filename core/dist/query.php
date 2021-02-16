@@ -17,6 +17,8 @@ class Query
     const READ      = 1;
     const UPDATE    = 2;
     const DELETE    = 3;
+
+    public $get_results = true;
     // CRUD Mode
     public $mode;
 
@@ -72,15 +74,19 @@ class Query
         {
             case Query::CREATE:
                 $this->selector = "INSERT INTO $table (". join(",", $fields) . ") VALUES ";
+                $this->get_results = false;
                 break;
             case Query::READ:
                 $this->selector = "SELECT ". join(",", $fields) . " FROM $table ";
+                $this->get_results = true;
                 break;
             case Query::UPDATE:
                 $this->selector = "UPDATE $table SET ";
+                $this->get_results = false;
                 break;
             case Query::DELETE:
                 $this->selector = "DELETE FROM $table ";
+                $this->get_results = false;
                 break;
             default:
                 Trash::handle("Bad Query Mode !");
@@ -350,7 +356,9 @@ class Query
      */
     public function execute(): array
     {
+        DB::$do_return = $this->get_results;
         $results = DB::query($this->build());
+        DB::$do_return = true;
         if (is_null($this->parser)) return $results;
         return $this->parser->parse($results);
     }

@@ -117,6 +117,7 @@ class DB {
         if ($statement->rowCount() > 0)
         {
             if (DB::$do_return === true) return $statement->fetchAll($mode);
+            return [];
         }
         return [];
     }
