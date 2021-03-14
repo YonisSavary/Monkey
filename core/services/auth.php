@@ -61,11 +61,15 @@ class Auth
 
         if (Auth::is_logged())
         {
-            if ($_SESSION["m_auth_duration"] === 0){
+            if ($_SESSION["m_auth_duration"] === 0)
+            {
                 Auth::logout();
-            } else {
+            } 
+            else 
+            {
                 $_SESSION["m_auth_duration"] +=  Config::get("auth_hop_duration", 300);
-                if ($_SESSION["m_auth_duration"] > Config::get("auth_duration")){
+                if ($_SESSION["m_auth_duration"] > Config::get("auth_duration"))
+                {
                     $_SESSION["m_auth_duration"] =  Config::get("auth_duration", 3600);
                 }
             }
@@ -110,7 +114,9 @@ class Auth
             $u = Auth::$model->get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
             Auth::login($u[0]);
             return true;
-        } else {
+        } 
+        else 
+        {
             if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
             $_SESSION["m_auth_attempt"]++;
             Auth::logout();

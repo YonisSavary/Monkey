@@ -71,7 +71,7 @@ class Renderer
      */
     public static function render(string $template_name, mixed $vars=null, bool $flush=true) : mixed
     {
-        $GLOBALS["m_render_vars"] = $vars;
+        $GLOBALS["render"] = $vars;
         $path = Renderer::find_template($template_name);
         if ($path === null) Trash::handle($template_name . " template does not exists !");
         ob_start();

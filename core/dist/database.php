@@ -97,7 +97,9 @@ class DB {
         if ($statement->rowCount() > 0)
         {
             return $statement->fetchAll();
-        } else {
+        } 
+        else
+        {
             return [];
         }
     }

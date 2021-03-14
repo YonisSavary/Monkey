@@ -113,7 +113,9 @@ class Query
             {
                 $this->clean_data($v);
             }
-        } else {
+        } 
+        else
+        {
             $values = "'".addslashes($values)."'";
         }
     }

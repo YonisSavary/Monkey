@@ -96,79 +96,64 @@ abstract class Model
     }
 
 
+    /**
+     * Query Building: I had some problem with these.
+     * Let's assume we have a model called User
+     * 
+     * With our old methods we had to do this to perform a SELECT query
+     * $model = new User();
+     * $rows = $model->getAll()->execute()
+     * 
+     * 
+     * But I don't like at all this syntax so I changed de system
+     * to have this one
+     * 
+     * $rows = User::getAll()->execute()
+     * 
+     * Which respect some idea or generality for the model
+     */
+
 
     /**
-     * Create a SELECT Query Object with the Model information
-     * and return it, you can put as arguments the names of the 
-     * fields you are trying to fetch
+     * This function is important for all the query-building ones
+     * It is a static function that can build a `Query` Object 
+     * with the model informations 
      * 
-     * @return Query the SELECT SQL Query Object
-     * @example base SomeModel->get("login", "password", "salt")->execute()
+     * @param array $fields Fields edited by the new Query
+     * @param int $query_mode one of the 4 modes of Query (Query::READ, Query::DELETE...etc)
      */
-    public function get(): Query
+    public static function build_query(array $fields=null, int $query_mode): Query
     {
-        $fields = func_get_args();
-        return new Query($this->table, $fields, $this->parser, Query::READ);
+        $model = new (get_called_class());
+        $table = $model->get_table();
+        if ($fields === null) $fields = $model->parser->get_model_fields();
+        return new Query($table, $fields, $model->parser, $query_mode);
     }
 
 
-
-    
-    /**
-     * Create a SELECT Query Object with the Model information
-     * and return it, this function fetch All the fields of the 
-     * model (not all the fields inside the table, but the all of 
-     * the public fields you've declared in your model)
-     * 
-     * @return Query the SELECT SQL Query Object
-     */
-    public function get_all(): Query
+    public static function get(): Query
     {
-        $fields = $this->parser->get_model_fields();
-        return new Query($this->table, $fields, $this->parser, Query::READ);
+        return get_called_class()::build_query(func_get_args(), Query::READ);
     }
 
+    public static function get_all(): Query
+    {
+        return get_called_class()::build_query(null, Query::READ);
+    }
 
-
-    
-    /**
-     * Create a UPDATE Query Object with the Model information
-     * and return it
-     * 
-     * @return Query the UPDATE SQL Query Object
-     */
     public function update(): Query
     {
-        return new Query($this->table, [], $this->parser, Query::UPDATE);
+        return get_called_class()::build_query([], Query::UPDATE);
     }
 
-
-
-    
-    /**
-     * Create a INSERT Query Object with the Model information
-     * and return it
-     * 
-     * @return Query the INSERT SQL Query Object
-     */
     public function insert(): Query
     {
-        $fields = func_get_args();
-        return new Query($this->table, $fields, $this->parser, Query::CREATE);
+        return get_called_class()::build_query(func_get_args(), Query::CREATE);
     }
 
-
-
-    
-    /**
-     * Create a DELETE Query Object with the Model information
-     * and return it
-     * 
-     * @return Query the DELETE SQL Query Object
-     */
     public function delete_from(): Query
     {
-        return new Query($this->table, [], $this->parser, Query::DELETE);
+        return get_called_class()::build_query([], Query::DELETE);
     }
 
     /**
