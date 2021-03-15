@@ -66,8 +66,11 @@ class Query
      * @param ModelParser $parser A ModelParser can be given to parse the results of `execute`
      * @param int $mode CRUD mode (Query::CREATE|READ|UPDATE|DELETE)
      */
-    public function __construct(string $table, mixed $fields=[],  ModelParser $parser=null, int $mode=Query::READ)
+    public function __construct(string|array $table, mixed $fields=[],  ModelParser $parser=null, int $mode=Query::READ)
     {
+        if (is_array($table)){
+            $table = join(",", $table);
+        }
         $this->mode = $mode;
         $this->parser = $parser;
         switch ($mode)
