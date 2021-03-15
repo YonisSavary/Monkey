@@ -13,6 +13,7 @@ use Monkey\Web\Trash;
 class Auth
 {
     static $model = null;
+    static $model_name = null;
     static $login_field = null;
     static $pass_field = null;
 
@@ -44,7 +45,6 @@ class Auth
         $model_name = "Models\\".Config::get("auth_model");
         if (!class_exists($model_name)) Trash::handle("$model_name Model does not exists !");
 
-
         $model = new $model_name();
         $parser = new ModelParser($model_name);
         $fields = $parser->get_model_fields();
@@ -58,6 +58,7 @@ class Auth
         Auth::$model = $model;
         Auth::$login_field = $login_field;
         Auth::$pass_field = $pass_field;
+        Auth::$model_name = $model_name;
 
         if (Auth::is_logged())
         {
@@ -87,7 +88,7 @@ class Auth
      */
     public static function check(string|int $login, string $password) : bool
     {
-        $user = Auth::$model->get(Auth::$model->get_primary_key(), Auth::$login_field, Auth::$pass_field)->where(Auth::$login_field, $login)->limit(1)->execute();
+        $user = Auth::$model_name::get(Auth::$model->get_primary_key(), Auth::$login_field, Auth::$pass_field)->where(Auth::$login_field, $login)->limit(1)->execute();
         if (count($user) === 0) return false;
         $user = $user[0];
         $pfield = Auth::$pass_field;
@@ -111,7 +112,7 @@ class Auth
         if (Auth::check($login, $password))
         {
             $_SESSION["m_auth_attempt"] = 0;
-            $u = Auth::$model->get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
+            $u = Auth::$model_name::get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
             Auth::login($u[0]);
             return true;
         } 
