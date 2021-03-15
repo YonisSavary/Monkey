@@ -227,7 +227,7 @@ class Query
      */
     public function order(string $field, string $mode="ASC"): Query
     {
-        $this->order = " ORDER BY `$field` $mode ";
+        $this->order = " ORDER BY $field $mode ";
         return $this;
     }
 
