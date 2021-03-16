@@ -1,5 +1,7 @@
 <?php 
 
+chdir("..");
+
 require_once "core/web/web.php";
 require_once "core/web/renderer.php";
 require_once "core/web/request.php";

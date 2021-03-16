@@ -201,6 +201,23 @@ class Router
 
 
     /**
+     * Given an object, this function display its
+     * content if it is a Response Object (and then die)
+     * 
+     * @param mixed $reqOrSomething Object to check
+     */
+    public static function displayIfResponse(mixed $reqOrSomething)
+    {
+        if ($reqOrSomething instanceof Response)
+        {
+            $reqOrSomething->reveal();
+            die();
+        }
+    }
+
+
+    
+    /**
      * When called, this function :
      * 1. get the Request parameter,
      * 2. check for a matching route
@@ -235,34 +252,41 @@ class Router
             
             if (isset($route->middlewares))
             {
-                foreach ($route->middlewares as $middleware_str)
+                foreach ($route->middlewares as $middleware_name)
                 {
-                    $middleware_str = "Middlewares\\".$middleware_str;
-                    if (!class_exists($middleware_str)) continue;
-                    $middleware = new $middleware_str();
-                    if (!method_exists($middleware, "handle")) continue;
-                    $res = $middleware->handle($req);
-                    if ($res instanceof Response)
+                    if (is_callable($middleware_name))
                     {
-                        $res->reveal();
-                        die();
+                        $res = $middleware_name();
                     }
+                    else 
+                    {
+                        $middleware_name = "Middlewares\\".$middleware_name;
+                        if (!class_exists($middleware_name)) continue;
+                        $middleware = new $middleware_name();
+                        if (!method_exists($middleware, "handle")) continue;
+                        $res = $middleware->handle($req);
+                    }
+                    Router::displayIfResponse($res);
                 }
             }
 
-            $class = "Controllers\\".explode("->", $to_execute)[0];
-            $method = explode("->", $to_execute)[1];
-            if (!class_exists($class)) {
-                //print_r(get_declared_classes());
-                Trash::handle("$class does not exists !");
-            }
-            $controller = new $class();
-            if (!method_exists($controller, $method)) Trash::handle("$method method does not exists !");
-            $response = $controller->$method($req);
-            if ($response instanceof Response)
+            if (is_callable($to_execute))
             {
-                $response->reveal();
+                $response = $to_execute($req);
             }
+            else 
+            {
+                // Discompose the `callback` attribute
+                $callback_parts = explode("->", $to_execute);
+                $controller_class = "Controllers\\".$callback_parts[0];
+                $method = $callback_parts[1];
+                if (!class_exists($controller_class)) Trash::handle("$controller_class does not exists !");
+                // Create the controller and execute the route callback
+                $controller = new $controller_class();
+                if (!method_exists($controller, $method)) Trash::handle("$method method does not exists !");
+                $response = $controller->$method($req);
+            }
+            Router::displayIfResponse($response);
             die();
         }
         Trash::handle("\"".$req_path."\" route not found");
