@@ -23,6 +23,27 @@ class DB {
     }
 
 
+    public static function load_configuration() : void
+    {
+        DB::$configuration = [
+            "driver"=>Config::get("db_driver"),
+            "host"=>Config::get("db_host"),
+            "port"=>Config::get("db_port"),
+            "name"=>Config::get("db_name"),
+            "user"=>Config::get("db_user"),
+            "pass"=>Config::get("db_pass")
+        ];
+    }
+
+    public static function get_dsn() : string
+    {
+        $dsn = DB::$configuration["driver"] . ":";
+        $dsn .= "host=".DB::$configuration["host"].";";
+        $dsn .= "port=".DB::$configuration["port"].";";
+        $dsn .= "dbname=".DB::$configuration["name"].";";
+        return $dsn;
+    }
+
 
     /**
      * Initialize the DB service if `db_enabled` is set to `true`
@@ -33,34 +54,22 @@ class DB {
     public static function init() : bool
     {
         if (Config::get("db_enabled") !== true) return false;
+        DB::load_configuration();
 
-        DB::$configuration = [
-            "driver"=>Config::get("db_driver"),
-            "host"=>Config::get("db_host"),
-            "port"=>Config::get("db_port"),
-            "name"=>Config::get("db_name"),
-            "user"=>Config::get("db_user"),
-            "pass"=>Config::get("db_pass")
-        ];
-
-        $dsn = DB::$configuration["driver"] . ":";
-        $dsn .= "host=".DB::$configuration["host"].";";
-        $dsn .= "port=".DB::$configuration["port"].";";
-        $dsn .= "dbname=".DB::$configuration["name"].";";
-
-        DB::connect($dsn, DB::$configuration["user"], DB::$configuration["pass"]);
+        DB::$connection = DB::get_connection(DB::$configuration["user"], DB::$configuration["pass"]);
         return true;
     }
 
-    public static function connect(string $dsn, string $user, string $password){
+    public static function get_connection(string $user, string $password, string $custom_dsn=null){
         try
         {
+            $dsn = $custom_dsn ?? DB::get_dsn();
             $connection = new PDO($dsn, $user, $password);
         } catch (PDOException $e)
         {
-            Trash::handle("Bad PDO parameters");
+            Trash::handle("Bad PDO parameters (Usually Bad DB Credentials) : ". $e->getMessage());
         }
-        DB::$connection = $connection;
+        return $connection;
     }
 
 

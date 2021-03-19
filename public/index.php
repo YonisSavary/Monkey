@@ -1,9 +1,6 @@
 <?php
 
-use Models\HC;
 use Monkey\Router;
-use Monkey\Web\Request;
-use Monkey\Web\Response;
 
 /**
  * Load Monkey and its components
