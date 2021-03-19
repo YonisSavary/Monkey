@@ -27,10 +27,6 @@ Router::add_temp("/", function(Request $req){
 });
 //*/
 
-Router::add_temp("/", function(){
-    return Response::json(HC::get_all()->limit(5)->execute());
-});
-
 /**
  * As this function is called, Monkey\Router
  * analyse your Request and begin it lifecycle
