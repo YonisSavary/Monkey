@@ -1,6 +1,8 @@
 <?php
 
+use Monkey\AppLoader;
 use Monkey\Router;
+use Monkey\Web\Response;
 
 /**
  * Load Monkey and its components
