@@ -47,16 +47,20 @@ class DB {
         $dsn .= "host=".DB::$configuration["host"].";";
         $dsn .= "port=".DB::$configuration["port"].";";
         $dsn .= "dbname=".DB::$configuration["name"].";";
-        
+
+        DB::connect($dsn, DB::$configuration["user"], DB::$configuration["pass"]);
+        return true;
+    }
+
+    public static function connect(string $dsn, string $user, string $password){
         try
         {
-            $connection = new PDO($dsn, DB::$configuration["user"], DB::$configuration["pass"]);
+            $connection = new PDO($dsn, $user, $password);
         } catch (PDOException $e)
         {
             Trash::handle("Bad PDO parameters");
         }
         DB::$connection = $connection;
-        return true;
     }
 
 

@@ -1,5 +1,6 @@
 <?php
 
+use Models\HC;
 use Monkey\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -26,6 +27,9 @@ Router::add_temp("/", function(Request $req){
 });
 //*/
 
+Router::add_temp("/", function(){
+    return Response::json(HC::get_all()->limit(5)->execute());
+});
 
 /**
  * As this function is called, Monkey\Router
