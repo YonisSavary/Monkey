@@ -141,17 +141,17 @@ abstract class Model
         return get_called_class()::build_query(null, Query::READ);
     }
 
-    public function update(): Query
+    public static function update(): Query
     {
         return get_called_class()::build_query([], Query::UPDATE);
     }
 
-    public function insert(): Query
+    public static function insert(): Query
     {
         return get_called_class()::build_query(func_get_args(), Query::CREATE);
     }
 
-    public function delete_from(): Query
+    public static function delete_from(): Query
     {
         return get_called_class()::build_query([], Query::DELETE);
     }
