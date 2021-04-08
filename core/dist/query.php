@@ -76,11 +76,11 @@ class Query
         switch ($mode)
         {
             case Query::CREATE:
-                $this->selector = "INSERT INTO $table (". join(",", $fields) . ") VALUES ";
+                $this->selector = "INSERT INTO $table (". join(", ", $fields) . ") VALUES ";
                 $this->get_results = false;
                 break;
             case Query::READ:
-                $this->selector = "SELECT ". join(",", $fields) . " FROM $table ";
+                $this->selector = "SELECT ". join(", ", $fields) . " FROM $table ";
                 $this->get_results = true;
                 break;
             case Query::UPDATE:
@@ -192,9 +192,8 @@ class Query
      * 
      * @param string Values
      */
-    public function values() : Query
+    public function values(...$values) : Query
     {
-        $values = func_get_args();
         $this->clean_data($values);
         array_push($this->values, "(". join(",", $values ) .")");
         return $this;
@@ -288,7 +287,7 @@ class Query
     private function build_create(): string
     {
         $this->query = $this->selector;
-        $this->query .= join(",", $this->values);
+        $this->query .= join(", ", $this->values);
         return $this->query;
     }
 
@@ -303,7 +302,7 @@ class Query
     private function build_update() : string
     {
         $this->query = $this->selector;
-        $this->query .= join(",", $this->set);
+        $this->query .= join(", ", $this->set);
         $this->query .= $this->build_wheres();
         return $this->query;
     }
@@ -361,9 +360,13 @@ class Query
      */
     public function execute(): array
     {
+        $do_return_original = DB::$do_return;
         DB::$do_return = $this->get_results;
+
         $results = DB::query($this->build());
-        DB::$do_return = true;
+
+        DB::$do_return = $do_return_original;
+        
         if (is_null($this->parser)) return $results;
         return $this->parser->parse($results);
     }

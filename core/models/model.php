@@ -66,6 +66,17 @@ abstract class Model
     }
 
 
+    public static function get_fields(array|string $ignores=[]): array 
+    {
+        if (!is_array($ignores)){
+            $ignores = [$ignores];
+        }
+        $class_name = get_called_class();
+        $model = new $class_name();
+        return array_diff($model->parser->get_model_fields(), $ignores);
+    }
+
+
 
 
 
@@ -75,8 +86,8 @@ abstract class Model
      */
     public function __construct()
     {
-        if (is_null($this->table)) Trash::handle("No protected \$table defined for model " . $this->class);
-        if (is_null($this->primary_key)) Trash::handle("No protected \$primary_key defined for model " . $this->class);
+        if (is_null($this->table)) Trash::handle("No 'protected \$table' defined for model " . $this->class);
+        if (is_null($this->primary_key)) Trash::handle("No 'protected \$primary_key' defined for model " . $this->class);
 
         $this->parser = new ModelParser(get_called_class());
     }
@@ -131,9 +142,9 @@ abstract class Model
     }
 
 
-    public static function get(): Query
+    public static function get(...$fields): Query
     {
-        return get_called_class()::build_query(func_get_args(), Query::READ);
+        return get_called_class()::build_query($fields, Query::READ);
     }
 
     public static function get_all(): Query
@@ -146,9 +157,9 @@ abstract class Model
         return get_called_class()::build_query([], Query::UPDATE);
     }
 
-    public static function insert(): Query
+    public static function insert(...$fields): Query
     {
-        return get_called_class()::build_query(func_get_args(), Query::CREATE);
+        return get_called_class()::build_query($fields, Query::CREATE);
     }
 
     public static function delete_from(): Query
@@ -189,6 +200,100 @@ abstract class Model
         }
         $query = "UPDATE " . $this->table . " SET ". join(",", $fields_str) . " WHERE $primary='" . $this->$primary . "';";
         DB::query($query);
+    }
+
+
+
+
+
+
+    /**
+     * Given an array respecting the model structure,
+     * this function create a new model instance and return it
+     * (or null if failed)
+     * 
+     * Let's say our model look like :
+     * Table 1 :
+     *  - cola
+     *  - colb
+     *  - colc
+     * 
+     * You can either give :
+     *  
+     *  [
+     *      "cola"=>"somevalue",
+     *      "colb"=>"anotherone",
+     *      "colc"=>"again"
+     *  ]
+     * 
+     * with this method, you can give any column
+     * you want (if we wanted to only give 'cola' and 'colb',
+     * it is possible)
+     * 
+     * Also you can directly give
+     * 
+     * [ "thefirstvalue", "thesecondone", "thethirdone" ]
+     * 
+     * with this method, you it is mandatory to give an array
+     * with the same element number as the model fields (here: 3)
+     * 
+     * 
+     */
+    public static function magic_create(array $data){
+        $model_name = get_called_class();
+        $new_object = new $model_name();
+        $model_fields = $model_name::get_fields();
+        if ( array_keys($data) !== range(0, count($data) - 1) ) {
+            // Is array associative ?
+            foreach ($data as $key => $value){
+                if (in_array($key, $model_fields)){
+                    $new_object->$key = $value;
+                }
+            }
+            return $new_object;
+        } else if ( count($model_fields) !== count($data) ){
+            // Non-associative array, is the array the same size 
+            // as the declared model fields
+            for ($i=0; $i<count($model_fields); $i++){
+                $current_field = $model_fields[$i];
+                $value = $data[$i];
+                $new_object->$current_field = $value;
+            }
+            return $new_object;
+        } else {
+            return null;
+        }
+    }
+
+
+
+
+    /**
+     * See "Model::magic_create" for argument behavior
+     * 
+     * This model behave the same as magic_create but 
+     * insert an item instead of returning is
+     */
+    public static function magic_insert(array $data) : Query {
+        $model_name = get_called_class();
+        $new_object = $model_name::magic_create($data);
+        if ($new_object === null) return null;
+
+        $fields_to_insert = $model_name::get_fields();
+        if ( array_keys($data) !== range(0, count($data) - 1) ) {
+            $fields_to_insert = array_keys($data);
+        }
+
+        $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
+        $object_values = array_values($data);
+        foreach ($object_values as &$val){
+            if (preg_match("/^[0-9.]+$/", $val)) continue;
+            $val = "'".addslashes($val)."'";
+        }
+        $values = "(" .  join(", ", $object_values) .  ")";
+        array_push($query->values, $values);
+
+        return $query;
     }
 
 }
