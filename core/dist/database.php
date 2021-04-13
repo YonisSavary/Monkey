@@ -67,7 +67,7 @@ class DB {
             $connection = new PDO($dsn, $user, $password);
         } catch (PDOException $e)
         {
-            Trash::handle("Bad PDO parameters (Usually Bad DB Credentials) : ". $e->getMessage());
+            Trash::handle("Can't initialize PDO (Usually Bad DB Credentials) : ". $e->getMessage());
         }
         return $connection;
     }

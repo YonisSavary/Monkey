@@ -7,7 +7,6 @@ require_once "core/web/renderer.php";
 require_once "core/web/request.php";
 require_once "core/web/response.php";
 require_once "core/web/trash.php";
-require_once "core/web/api.php";
 
 require_once "core/config/config.php";
 require_once "core/config/register.php";

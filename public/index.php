@@ -2,6 +2,8 @@
 
 use Monkey\AppLoader;
 use Monkey\Router;
+use Monkey\Web\API;
+use Monkey\Web\Request;
 use Monkey\Web\Response;
 
 /**
@@ -25,6 +27,10 @@ Router::add_temp("/", function(Request $req){
     return Response::json(["status"=>"It's does works"]);
 });
 //*/
+
+Router::add_temp("/oui", function(Request $req){
+    return Response::html($req->retrieveOne("page", Request::GET, true));
+});
 
 /**
  * As this function is called, Monkey\Router
