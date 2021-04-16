@@ -190,7 +190,7 @@ abstract class Model
     {
         $fields = $this->parser->get_model_fields();
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::handle("Object has no '$primary' field");
+        if (!isset($this->$primary)) Trash::handle('Object has no $primary field');
         if ($this->primary_key === "") Trash::handle($this::class . " has no \$primary_key defined !");
         $fields_str = [];
         foreach ($fields as $f)

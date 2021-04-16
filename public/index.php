@@ -28,10 +28,6 @@ Router::add_temp("/", function(Request $req){
 });
 //*/
 
-Router::add_temp("/oui", function(Request $req){
-    return Response::html($req->retrieveOne("page", Request::GET, true));
-});
-
 /**
  * As this function is called, Monkey\Router
  * analyse your Request and begin it lifecycle

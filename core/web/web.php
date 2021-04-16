@@ -14,7 +14,8 @@ function url(string $file)
 
 function include_file(string $template_name)
 {
-    return Renderer::render($template_name, $GLOBALS["m_render_vars"], false);
+    if (!isset($GLOBALS["render"])) $GLOBALS["render"] = [];
+    return Renderer::render($template_name, $GLOBALS["render"], false);
 }
 
 function router(string $routeName)
