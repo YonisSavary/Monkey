@@ -20,6 +20,8 @@ class Request
     public $post;
     public $files;
 
+
+
     // In case you want to store more informations
     public $storage = [];
 
