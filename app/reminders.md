@@ -2,6 +2,9 @@
 
 This file contains some reminders for you !
 
+
+
+
 ## Controllers Syntax
 
 **Controllers are stored in ./controllers**
@@ -16,6 +19,10 @@ namespace Controllers;
 class SomeName {
     public function someFunction() {
         return Response::html("Hello there !");
+    }
+
+    public function anotherOne(){
+        return Response::json(["status" => "ok"]);
     }
 }
 ```
@@ -33,7 +40,7 @@ class SomeName {
 
 **Middlewares are stored in ./middlewares**
 
-Here is an example of a very simple Middlewares,
+Here is an example of a very simple Middleware,
 which is quite similar to the controllers one 
 (only the required namespace changes)
 
@@ -43,7 +50,7 @@ which is quite similar to the controllers one
 namespace Middlewares;
 
 class SomeName {
-    public function someFunction(Request $req) {
+    public function handle(Request $req) {
         if ($req->path !== "/thesecretpath") {
             Router::redirect("/toobad");
         }
@@ -80,6 +87,10 @@ namespace Models;
  *
  * Protected members are used internally by Monkey
  * Public fields are fetched and parsed when using it
+ * 
+ * Note : $primary_key is not considered as a public field
+ * in this example: we would need to add `public $id` to fetch it
+ * when doing a query
  */
 class UserOrSomething {
     protected $table = "user";
@@ -105,10 +116,10 @@ class UserOrSomething {
 
 **Views are stored in ./views**
 
-Views are classical php files that you can call with the
+Views are classical php files that you can render with the
 `Renderer` component
 
-As PHP is already a templating tool, quite simple but it 
+As PHP is already a templating tool, quite simple, but it 
 still do the trick for simple uses, you can have something 
 like this
 
@@ -123,9 +134,13 @@ still add a renderer component with composer if you wish so
 </ul>
 ```
 
+
+
+
+
 ## Inserting others php files
 
-If you want to have other php files in your php
+If you want to have other php files in your application
 (like a module used in a app-wide context), you 
 can add them in a folder named "others", `app_loader.php`
 will detect them (recursively) and include them
