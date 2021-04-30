@@ -12,7 +12,7 @@ namespace Monkey;
  */
 class AppLoader
 {
-    public static $required_files = [];
+    public static $others = [];
     public static $views_directory = [];
     public static $app_directory = [];
 
@@ -44,15 +44,16 @@ class AppLoader
                 if ($file === "views")
                 {
                     array_push(AppLoader::$views_directory, $file_path);
-                    continue;
-                }
-                if ($file === "requires")
+                } 
+                else if ($file === "others") 
                 {
-                    AppLoader::$required_files = array_merge(AppLoader::$required_files, AppLoader::explore_dir($file_path));
-                    continue;
+                    AppLoader::$others = array_merge(AppLoader::$others, AppLoader::explore_dir($file_path, true));
+                } 
+                else 
+                {
+                    if (in_array($file, AppLoader::$app_loader_blacklist)) continue;
+                    $results = array_merge($results, AppLoader::explore_dir($file_path));
                 }
-                if (in_array($file, AppLoader::$app_loader_blacklist)) continue;
-                $results = array_merge($results, AppLoader::explore_dir($file_path));
             }
             else 
             {
@@ -105,7 +106,8 @@ class AppLoader
         
 
         
-        if (Config::exists("app_loader_blacklist")) { 
+        if (Config::exists("app_loader_blacklist")) 
+        { 
             AppLoader::$app_loader_blacklist = Config::get("app_loader_blacklist");
         }
 
@@ -125,15 +127,11 @@ class AppLoader
         Config::set_discrete("views-directory", AppLoader::$views_directory);
         spl_autoload_register(function()
         {
-            foreach(AppLoader::$autoload_list as $dir)
+            $to_loads = array_merge(AppLoader::$autoload_list, AppLoader::$others);
+            foreach(array_unique($to_loads) as $dir)
             {
                 include($dir);
             }
         });
-        foreach (AppLoader::$required_files as $f ){
-            if (is_file($f)){
-                require_once $f;
-            }
-        }
     }
 }

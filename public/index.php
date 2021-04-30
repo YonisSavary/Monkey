@@ -1,5 +1,6 @@
 <?php
 
+use Modules\LeTest;
 use Monkey\AppLoader;
 use Monkey\Router;
 use Monkey\Web\API;
@@ -19,14 +20,14 @@ require_once "../core/monkey.php";
 /**
  * If your application contains only a few
  * routes, you can add them here with Monkey\Router::add_temp()
- * (don't forget 'add()' has a permanent effect, don't use it !)
+ * (don't forget 'add()' has a permanent effect !)
  */
 
-/* Route Example 
+/* Basic Route Example */
+
 Router::add_temp("/", function(Request $req){
     return Response::json(["status"=>"It's does works"]);
 });
-//*/
 
 /**
  * As this function is called, Monkey\Router
