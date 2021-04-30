@@ -1,8 +1,14 @@
-# Controllers Syntax
+# Monkey Reminder
+
+This file contains some reminders for you !
+
+## Controllers Syntax
+
+**Controllers are stored in ./controllers**
 
 Here is an example of a very simple controller 
 
-<pre>
+```php
 <?php 
 
 namespace Controllers;
@@ -12,17 +18,26 @@ class SomeName {
         return Response::html("Hello there !");
     }
 }
-</pre>
+```
 
 
-# Middlewares Syntax
+
+
+
+
+
+
+
+
+## Middlewares Syntax
+
+**Middlewares are stored in ./middlewares**
 
 Here is an example of a very simple Middlewares,
 which is quite similar to the controllers one 
 (only the required namespace changes)
 
-<pre>
-
+```php
 <?php 
 
 namespace Middlewares;
@@ -35,16 +50,25 @@ class SomeName {
     }
 }
 
-</pre>
+```
 
 
 
-# Models Syntax
+
+
+
+
+
+
+
+
+## Models Syntax
+
+**Models are stored in ./models**
 
 Here is an example of a very simple model
 
-<pre>
-
+```php
 <?php 
 
 namespace Models;
@@ -65,12 +89,21 @@ class UserOrSomething {
     public $last_login;
 }
 
-</pre>
+```
 
 
 
 
-# Monkey Views
+
+
+
+
+
+
+
+## Monkey Views
+
+**Views are stored in ./views**
 
 Views are classical php files that you can call with the
 `Renderer` component
@@ -82,14 +115,17 @@ like this
 Monkey's philosophy is to stay quite simple, BUT, you can
 still add a renderer component with composer if you wish so
 
+```php
 <ul>
     <?php for ($i=0; $i<5; $i++) { ?>
         <li>Some Example : <?= $i ?></li>
     <?php } ?>
 </ul>
+```
 
-&lt;ul&gt;
-    &lt;?php for ($i=0; $i&lt;5; $i++) { ?&gt;
-        &lt;li&gt;Some Example : &lt;?= $i ?&gt;&lt;/li&gt;
-    &lt;?php } ?&gt;
-&lt;/ul&gt;
+## Inserting others php files
+
+If you want to have other php files in your php
+(like a module used in a app-wide context), you 
+can add them in a folder named "others", `app_loader.php`
+will detect them (recursively) and include them
