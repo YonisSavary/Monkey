@@ -219,6 +219,23 @@ class Router
     }
 
 
+    /**
+     * Call a Route callback and return the value
+     */
+    public static function executeRouteCallback(string $to_execute, mixed $custom_args=null)
+    {
+        // Discompose the `callback` attribute
+        $callback_parts = explode("->", $to_execute);
+        $controller_class = "Controllers\\".$callback_parts[0];
+        $method = $callback_parts[1];
+        if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
+        // Create the controller and execute the route callback
+        $controller = new $controller_class();
+        if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
+        return $controller->$method( $custom_args ?? Router::$request);
+    }
+
+
     
     /**
      * When called, this function :
@@ -280,15 +297,7 @@ class Router
             }
             else 
             {
-                // Discompose the `callback` attribute
-                $callback_parts = explode("->", $to_execute);
-                $controller_class = "Controllers\\".$callback_parts[0];
-                $method = $callback_parts[1];
-                if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
-                // Create the controller and execute the route callback
-                $controller = new $controller_class();
-                if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
-                $response = $controller->$method($req);
+                $response = Router::executeRouteCallback($route->callback);
             }
             Router::displayIfResponse($response);
             die();

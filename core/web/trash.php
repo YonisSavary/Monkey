@@ -3,6 +3,7 @@
 namespace Monkey\Web;
 
 use Monkey\Config;
+use Monkey\Router;
 
 /**
  * This class is here to handle errors,
@@ -15,13 +16,20 @@ class Trash
 {
     static $error_callbacks = [];
 
-    public static function on(string $error, callable $callback){
+    public static function on(string $error, callable|string $callback){
         Trash::$error_callbacks[$error] = $callback;
     }
 
     public static function send(string $error, $arg=null){
         if (isset(Trash::$error_callbacks[$error])){
-            Trash::$error_callbacks[$error]($arg);
+            $callback = Trash::$error_callbacks[$error];
+            if (is_string($callback)){
+                Router::executeRouteCallback($callback, $arg);
+            } 
+            else
+            {
+                $callback($arg);
+            }
         }
     }
 
@@ -44,10 +52,7 @@ Trash::on("fatal", function (string $message){
     if (Config::get("safe_error_display", false) !== true){
         $message = "Fatal Error In Monkey : $message";
     } 
-    $message = "
-        <h1>Error 500</h1>
-        $message
-    ";
+    $message = "<h1>Error 500</h1> $message";
     echo $message;
     die();
 });
