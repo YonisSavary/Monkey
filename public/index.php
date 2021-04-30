@@ -22,6 +22,7 @@ require_once "../core/monkey.php";
 
 /* Basic Route Example */
 
+Router::add_temp("/", "T->T");
 
 Router::add_temp("/", function(Request $req){
     return Response::json(["status"=>"It's does works"]);

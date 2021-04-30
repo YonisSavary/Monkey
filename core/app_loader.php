@@ -14,12 +14,32 @@ class AppLoader
 {
     const CACHE_FILE_NAME = "cached_apploader";
 
-    public static $others = [];
     public static $views_directories = [];
     public static $app_directories = [];
 
     public static $autoload_list = [];
 
+
+    public static function explore_full_dir(string $path){
+        if (!is_dir($path)) return false;
+        if (substr($path, -1) != "/") $path .= "/";
+        $results = [];
+        foreach (scandir($path) as $file)
+        {
+            if ($file === "." || $file === "..") continue;
+            $file_path = $path . $file;
+            if (is_dir($file_path))
+            {
+                $results = array_merge($results, AppLoader::explore_full_dir($file_path));
+            }
+            else 
+            {
+                if (substr($file, -4) !== ".php") continue;
+                array_push($results, $file_path);
+            }
+        }
+        return $results;
+    }
 
 
     /**
@@ -31,7 +51,7 @@ class AppLoader
      * @param bool $recursive Do the function call itself for subdirectories ?
      * @return array Classes Files inside the explored directory
      */
-    public static function explore_dir(string $path, bool $recursive=true) : array
+    public static function load_application(string $path) : array
     {
         if (!is_dir($path)) return false;
         if (substr($path, -1) != "/") $path .= "/";
@@ -40,19 +60,15 @@ class AppLoader
         {
             if ($file === "." || $file === "..") continue;
             $file_path = $path . $file;
-            if (is_dir($file_path) && $recursive)
+            if (is_dir($file_path))
             {
                 if ($file === "views")
                 {
                     array_push(AppLoader::$views_directories, $file_path);
                 } 
-                else if ($file === "others") 
+                else if (in_array($file, ["others", "controllers", "models"]))
                 {
-                    AppLoader::$others = array_merge(AppLoader::$others, AppLoader::explore_dir($file_path, true));
-                } 
-                else 
-                {
-                    $results = array_merge($results, AppLoader::explore_dir($file_path));
+                    $results = array_merge($results, AppLoader::explore_full_dir($file_path));
                 }
             }
             else 
@@ -78,7 +94,7 @@ class AppLoader
         foreach(AppLoader::$app_directories as $dir)
         {
             if (!str_ends_with("/", $dir)) $dir .= "/";
-            $to_loads = array_merge($to_loads, AppLoader::explore_dir($dir));
+            $to_loads = array_merge($to_loads, AppLoader::load_application($dir));
         }
         AppLoader::$autoload_list = $to_loads;      
         if (Config::get(AppLoader::CACHE_FILE_NAME) === true)
@@ -122,8 +138,7 @@ class AppLoader
         Config::set_discrete("views-directory", AppLoader::$views_directories);
         spl_autoload_register(function()
         {
-            $to_loads = array_merge(AppLoader::$autoload_list, AppLoader::$others);
-            foreach(array_unique($to_loads) as $dir)
+            foreach(AppLoader::$autoload_list as $dir)
             {
                 include($dir);
             }
