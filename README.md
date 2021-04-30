@@ -133,7 +133,7 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 |Key Name | Purpose | Default (if any) |
 |---------|---------|------------------|
 | `register_store` | Directory where `Monkey\Register` store its files | "./config" |
-| `app_directory` | Directory where Monkey look for app files | "./app" |
+| `app_directories` | Directory where Monkey look for app files | "./app" |
 | `cached_apploader` | Does the apploader cache its directories with `Monkey\Register` not advised in dev environment (can save you some times) | false |
 | `db_enabled` | Do Monkey create a connection to a database ? | false |
 | `db_driver` | Driver used by PDO |  |
@@ -180,7 +180,7 @@ directories, just like they were 2 separated apps.
 You can combine them by setting this in `monkey.json`
 
 <pre>
-    "app_directory" : ["./app_users", "./app_admin"]
+    "app_directories" : ["./app_users", "./app_admin"]
 </pre>
 
 Notes : 

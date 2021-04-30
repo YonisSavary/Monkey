@@ -8,9 +8,9 @@ use PDO;
 use PDOException;
 
 class DB {
-    static $do_return = true;
-    static $connection;
+    static $connection = null;
     static $configuration = [];
+    static $last_insert_id = null;
 
     /**
      * Called function as another function of `DB` is called,
@@ -19,19 +19,19 @@ class DB {
      */
     public static function check_connection() : void
     {
-        if (DB::$connection === false) Trash::handle("Tried to use DB Function ! db_enabled is set to false ");
+        if (DB::$connection === null) Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(");
     }
 
 
     public static function load_configuration() : void
     {
         DB::$configuration = [
-            "driver"=>Config::get("db_driver"),
-            "host"=>Config::get("db_host"),
-            "port"=>Config::get("db_port"),
-            "name"=>Config::get("db_name"),
-            "user"=>Config::get("db_user"),
-            "pass"=>Config::get("db_pass")
+            "driver" => Config::get("db_driver"),
+            "host"   => Config::get("db_host"),
+            "port"   => Config::get("db_port"),
+            "name"   => Config::get("db_name"),
+            "user"   => Config::get("db_user"),
+            "pass"   => Config::get("db_pass")
         ];
     }
 
@@ -65,9 +65,10 @@ class DB {
         {
             $dsn = $custom_dsn ?? DB::get_dsn();
             $connection = new PDO($dsn, $user, $password);
-        } catch (PDOException $e)
+        } 
+        catch (PDOException $e)
         {
-            Trash::handle("Can't initialize PDO (Usually Bad DB Credentials) : ". $e->getMessage());
+            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) : ". $e->getMessage());
         }
         return $connection;
     }
@@ -81,6 +82,7 @@ class DB {
      */
     public static function prepare(string $request) : void
     {
+        DB::check_connection();
         DB::$connection->prepare($request);
     }
 
@@ -94,6 +96,7 @@ class DB {
      */
     public static function bind(string $bind, mixed $value) : void
     {
+        DB::check_connection();
         DB::$connection->bindParam($bind, $value);
     }
 
@@ -106,7 +109,9 @@ class DB {
      */
     public static function execute() : array
     {
+        DB::check_connection();
         $statement = DB::$connection->execute();
+        DB::$last_insert_id = DB::$connection->lastInsertId() ?? null;
         if ($statement->rowCount() > 0)
         {
             return $statement->fetchAll();
@@ -128,11 +133,12 @@ class DB {
      */
     public static function query(string $query, int $mode=PDO::FETCH_ASSOC)
     {
+        DB::check_connection();
         $statement = DB::$connection->query($query);
+        DB::$last_insert_id = DB::$connection->lastInsertId() ?? null;
         if ($statement->rowCount() > 0)
         {
-            if (DB::$do_return === true) return $statement->fetchAll($mode);
-            return [];
+            return $statement->fetchAll($mode);
         }
         return [];
     }

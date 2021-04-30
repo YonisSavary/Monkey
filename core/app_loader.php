@@ -12,11 +12,12 @@ namespace Monkey;
  */
 class AppLoader
 {
-    public static $others = [];
-    public static $views_directory = [];
-    public static $app_directory = [];
+    const CACHE_FILE_NAME = "cached_apploader";
 
-    public static $app_loader_blacklist = [];
+    public static $others = [];
+    public static $views_directories = [];
+    public static $app_directories = [];
+
     public static $autoload_list = [];
 
 
@@ -24,7 +25,7 @@ class AppLoader
     /**
      * Explore a directory and retrieves return classes PHP files,
      * if a directory is named `views` it is ignored and its path 
-     * is added to `AppLoader::$views_directory`
+     * is added to `AppLoader::$views_directories`
      * 
      * @param string $path Path of the directory to explore
      * @param bool $recursive Do the function call itself for subdirectories ?
@@ -43,7 +44,7 @@ class AppLoader
             {
                 if ($file === "views")
                 {
-                    array_push(AppLoader::$views_directory, $file_path);
+                    array_push(AppLoader::$views_directories, $file_path);
                 } 
                 else if ($file === "others") 
                 {
@@ -51,13 +52,11 @@ class AppLoader
                 } 
                 else 
                 {
-                    if (in_array($file, AppLoader::$app_loader_blacklist)) continue;
                     $results = array_merge($results, AppLoader::explore_dir($file_path));
                 }
             }
             else 
             {
-                if (in_array($file, AppLoader::$app_loader_blacklist)) continue;
                 if (substr($file, -4) !== ".php") continue;
                 array_push($results, $file_path);
             }
@@ -76,15 +75,18 @@ class AppLoader
     public static function load_applications() : void
     {
         $to_loads = [];
-        foreach(AppLoader::$app_directory as $dir)
+        foreach(AppLoader::$app_directories as $dir)
         {
             if (!str_ends_with("/", $dir)) $dir .= "/";
             $to_loads = array_merge($to_loads, AppLoader::explore_dir($dir));
         }
         AppLoader::$autoload_list = $to_loads;      
-        if (Config::get("cached_apploader") === true)
+        if (Config::get(AppLoader::CACHE_FILE_NAME) === true)
         {
-            Register::set("cached_apploader", [AppLoader::$views_directory, AppLoader::$autoload_list]);
+            Register::set(AppLoader::CACHE_FILE_NAME, [
+                "views_directories"=> AppLoader::$views_directories,
+                "autoload_list"=> AppLoader::$autoload_list
+            ]);
         }  
     }
 
@@ -100,23 +102,16 @@ class AppLoader
      */
     public static function init() : void
     {
-        $cfg_app = Config::get("app_directory", ["./app"]);
+        $cfg_app = Config::get("app_directories", []);
         if (is_string($cfg_app)) $cfg_app = [$cfg_app];
-        AppLoader::$app_directory = $cfg_app;
-        
+        AppLoader::$app_directories = $cfg_app;
 
-        
-        if (Config::exists("app_loader_blacklist")) 
-        { 
-            AppLoader::$app_loader_blacklist = Config::get("app_loader_blacklist");
-        }
-
-
-        if (Config::get("cached_apploader") === true && Register::get("apploader") !== null)
+        if ( Config::get(AppLoader::CACHE_FILE_NAME)    === true 
+        &&   Register::get(AppLoader::CACHE_FILE_NAME)  !== null )
         {
-            $data = Register::get("cached_apploader");
-            AppLoader::$views_directory = $data[0];
-            AppLoader::$autoload_list = $data[1];
+            $data = Register::get(AppLoader::CACHE_FILE_NAME);
+            AppLoader::$views_directories   = $data["views_directories"];
+            AppLoader::$autoload_list       = $data["autoload_list"];
         } 
         else
         {
@@ -124,7 +119,7 @@ class AppLoader
         }
 
 
-        Config::set_discrete("views-directory", AppLoader::$views_directory);
+        Config::set_discrete("views-directory", AppLoader::$views_directories);
         spl_autoload_register(function()
         {
             $to_loads = array_merge(AppLoader::$autoload_list, AppLoader::$others);

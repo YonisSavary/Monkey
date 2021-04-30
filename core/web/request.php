@@ -53,7 +53,7 @@ class Request
         $storage = null;
         if ($mode === Request::GET) $storage = &$this->get;
         if ($mode === Request::POST) $storage = &$this->post;
-        if ($storage === null) Trash::handle("Bad API Mode for retrieve function !");
+        if ($storage === null) Trash::fatal("Bad API Mode for retrieve function !");
 
         $values = [];
         foreach ($keys as $k)
@@ -78,8 +78,8 @@ class Request
      * @param int $mode Request::[GET,POST], choose either from GET or POST data
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
      */
-    public function retrieveOne(string $key, int $mode=Request::GET, bool $secure=true) {
-        return $this->retrieve($key, $mode, $secure)[$key];
+    public function retrieveOne(string $key, mixed $default, int $mode=Request::GET, bool $secure=true) {
+        return $this->retrieve($key, $mode, $secure)[$key] ?? $default;
     }
 
 

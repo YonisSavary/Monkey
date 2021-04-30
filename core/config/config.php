@@ -113,7 +113,7 @@ class Config
     public static function init()
     {
         if (!file_exists("monkey.json")) {
-            Trash::handle("monkey.json doesn't exists !");
+            Trash::fatal("monkey.json doesn't exists !");
         };
         
         $cfg = Config::read_config();

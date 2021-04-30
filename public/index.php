@@ -2,10 +2,12 @@
 
 use Modules\LeTest;
 use Monkey\AppLoader;
+use Monkey\Dist\DB;
 use Monkey\Router;
 use Monkey\Web\API;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
+use Monkey\Web\Trash;
 
 /**
  * Load Monkey and its components
@@ -25,8 +27,11 @@ require_once "../core/monkey.php";
 
 /* Basic Route Example */
 
+
 Router::add_temp("/", function(Request $req){
-    return Response::json(["status"=>"It's does works"]);
+    //return Response::json(["status"=>"It's does works"]);
+    DB::query("INSERT INTO ad (message) VALUES ('blahblah')");
+    return Response::json(DB::$last_insert_id);
 });
 
 /**

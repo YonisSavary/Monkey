@@ -47,7 +47,7 @@ class Query
     public $values = [];
 
     // READ mode only
-    public $order = "";
+    public $order = [];
     public $limit = "";
     public $offset = "";
 
@@ -92,7 +92,7 @@ class Query
                 $this->get_results = false;
                 break;
             default:
-                Trash::handle("Bad Query Mode !");
+                Trash::fatal("Bad Query Mode !");
                 break;
         }
         return $this;
@@ -155,20 +155,6 @@ class Query
 
 
     
-    /**
-     * Build the WHERE statement part 
-     * 
-     * @return string Either the WHERE if the query has conditions or an empty string
-     */
-    public function build_wheres() : string
-    {
-        if (count($this->where) > 0)
-        {
-            return " WHERE " . join("", $this->where);
-        }
-        return "";
-    }
-
 
 
 
@@ -226,7 +212,7 @@ class Query
      */
     public function order(string $field, string $mode="ASC"): Query
     {
-        $this->order = " ORDER BY $field $mode ";
+        array_push($this->order, "$field $mode");
         return $this;
     }
 
@@ -261,6 +247,30 @@ class Query
 
 
 
+    public function build_order() : string {
+        if (count($this->order) > 0){
+            return " ORDER BY ". join(", ", $this->order);
+        }
+    }
+
+
+    /**
+     * Build the WHERE statement part 
+     * 
+     * @return string Either the WHERE if the query has conditions or an empty string
+     */
+    public function build_wheres() : string
+    {
+        if (count($this->where) > 0)
+        {
+            return " WHERE " . join("", $this->where);
+        }
+        return "";
+    }
+
+
+
+
     /**
      * Build the final Query for READ mode
      * 
@@ -270,7 +280,7 @@ class Query
     {
         $this->query = $this->selector ;
         $this->query .= $this->build_wheres();
-        $this->query .= $this->order;
+        $this->query .= $this->build_order();
         $this->query .= $this->limit;
         $this->query .= $this->offset;
         return $this->query;
@@ -304,6 +314,8 @@ class Query
         $this->query = $this->selector;
         $this->query .= join(", ", $this->set);
         $this->query .= $this->build_wheres();
+        $this->query .= $this->build_order();
+        $this->query .= $this->limit;
         return $this->query;
     }
 
@@ -319,6 +331,8 @@ class Query
     {
         $this->query = $this->selector;
         $this->query .= $this->build_wheres();
+        $this->query .= $this->build_order();
+        $this->query .= $this->limit;
         return $this->query;
     }
 
@@ -345,7 +359,7 @@ class Query
                 return $this->build_delete();
                 break;
             default:
-                Trash::handle("Bad Query Mode !");
+                Trash::fatal("Bad Query Mode !");
                 break;
         }
     }
@@ -360,12 +374,7 @@ class Query
      */
     public function execute(): array
     {
-        $do_return_original = DB::$do_return;
-        DB::$do_return = $this->get_results;
-
         $results = DB::query($this->build());
-
-        DB::$do_return = $do_return_original;
         
         if (is_null($this->parser)) return $results;
         return $this->parser->parse($results);

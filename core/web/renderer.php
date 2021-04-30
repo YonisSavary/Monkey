@@ -73,7 +73,7 @@ class Renderer
     {
         $GLOBALS["render"] = $vars;
         $path = Renderer::find_template($template_name);
-        if ($path === null) Trash::handle($template_name . " template does not exists !");
+        if ($path === null) Trash::fatal($template_name . " template does not exists !");
         ob_start();
         require_once $path;
         $content = ob_get_clean();

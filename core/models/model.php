@@ -68,9 +68,7 @@ abstract class Model
 
     public static function get_fields(array|string $ignores=[]): array 
     {
-        if (!is_array($ignores)){
-            $ignores = [$ignores];
-        }
+        if (!is_array($ignores)) $ignores = [$ignores];
         $class_name = get_called_class();
         $model = new $class_name();
         return array_diff($model->parser->get_model_fields(), $ignores);
@@ -86,8 +84,10 @@ abstract class Model
      */
     public function __construct()
     {
-        if (is_null($this->table)) Trash::handle("No 'protected \$table' defined for model " . $this->class);
-        if (is_null($this->primary_key)) Trash::handle("No 'protected \$primary_key' defined for model " . $this->class);
+        if (is_null($this->table)) Trash::fatal("No 'protected \$table' defined for model " . $this->class);
+
+        // This line makes the primary_key a mandatory property
+        //if (is_null($this->primary_key)) Trash::fatal("No 'protected \$primary_key' defined for model " . $this->class);
 
         $this->parser = new ModelParser(get_called_class());
     }
@@ -175,7 +175,7 @@ abstract class Model
     public function delete(): void
     {
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::handle("Object has no '$primary' field");
+        if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
         $this->delete_from()->where($primary, $this->$primary)->execute();
     }
 
@@ -190,8 +190,8 @@ abstract class Model
     {
         $fields = $this->parser->get_model_fields();
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::handle('Object has no $primary field');
-        if ($this->primary_key === "") Trash::handle($this::class . " has no \$primary_key defined !");
+        if (!isset($this->$primary)) Trash::fatal('Object has no $primary field');
+        if ($this->primary_key === "") Trash::fatal($this::class . " has no \$primary_key defined !");
         $fields_str = [];
         foreach ($fields as $f)
         {

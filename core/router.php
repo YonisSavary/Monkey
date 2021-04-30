@@ -11,7 +11,8 @@ class Router
 {
     public static $list = []; // Current routes of the framework
     public static $temp = []; // Not saved routes, used in `route_current` function
-
+    
+    public static $request = null;
 
 
     /**
@@ -32,6 +33,9 @@ class Router
      */
     public static function save() : void
     {
+        // Array Values is here to avoid the index problem
+        // For an array like ["A", "B", "C"]
+        // don't using array_values will give this [0 => "A", 1 => "B", 2 => "C"]
         Router::$list = array_values(Router::$list);
         Register::set("routes", Router::$list);
     }
@@ -42,7 +46,6 @@ class Router
      * Initialize the component :
      * - Create an empty routes list if inexistant
      * - Read the framework routes
-     * - Add the admin interfaces route if enabled 
      */
     public static function init() : void
     {
@@ -249,7 +252,8 @@ class Router
             $req->path = $req_path;
             $req->method = $req_method;
             $req->slugs = Router::build_slugs($route->path, $req_path);
-            
+            Router::$request = $req;
+
             if (isset($route->middlewares))
             {
                 foreach ($route->middlewares as $middleware_name)
@@ -280,16 +284,16 @@ class Router
                 $callback_parts = explode("->", $to_execute);
                 $controller_class = "Controllers\\".$callback_parts[0];
                 $method = $callback_parts[1];
-                if (!class_exists($controller_class)) Trash::handle("$controller_class does not exists !");
+                if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
                 // Create the controller and execute the route callback
                 $controller = new $controller_class();
-                if (!method_exists($controller, $method)) Trash::handle("$method method does not exists !");
+                if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
                 $response = $controller->$method($req);
             }
             Router::displayIfResponse($response);
             die();
         }
-        Trash::handle("\"".$req_path."\" route not found");
-        //Response::json(Router::$list)->reveal();
+
+        Trash::send("404", $req_path);
     }
 }

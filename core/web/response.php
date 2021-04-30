@@ -49,8 +49,25 @@ class Response
         echo $this->content;
     }
 
-    public static function send_file($path, bool $delete=false)
+
+
+    /**
+     * Send a file as a Response
+     * 
+     * @param string $path Path of the file to send
+     * @param bool $delete Do we delete the file after it was sent
+     * @param bool $secure Ignore the function if the path includes some forbidden terms
+     */
+    public static function send_file(string $path, bool $delete=false, bool $secure=false)
     {
+        if ($secure === true){
+            foreach(["/etc", "/opt", "/windows", ".."] as $word){
+                if (strpos($path, $word) !== false){
+                    return false;
+                }
+            }
+        }
+
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
         header('Content-Disposition: attachment; filename='.basename($path));
@@ -63,6 +80,6 @@ class Response
         flush();
         readfile($path);
         if ($delete) unlink($path);
-        exit;
+        die();
     }
 }

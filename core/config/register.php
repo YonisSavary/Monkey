@@ -23,7 +23,7 @@ class Register
             //echo "Loading $path <br>"; // DEBUG
             $file_name = preg_replace("/.+\//", "", $path);
             $key = substr($file_name, 0, strlen($file_name)-5);
-            $GLOBALS["monkey"][$key] = json_decode(file_get_contents($path));
+            $GLOBALS["monkey"][$key] = (array) json_decode(file_get_contents($path));
         }
     }
 
