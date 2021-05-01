@@ -49,8 +49,7 @@ class Router
      */
     public static function init() : void
     {
-        if (Register::get("routes") === null) Register::set("routes", []);
-        Router::$list = Register::get("routes");
+        Router::$list = Register::get("routes", []);
     }
 
 

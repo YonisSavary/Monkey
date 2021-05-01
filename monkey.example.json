@@ -1,9 +1,9 @@
 {
-    "register_store" : "./config",
+    "register_store" : "./cache",
 	"app_directories" : "./app",
 	"cached_apploader" : false,
 
-	"db_enabled" : true,
+	"db_enabled" : false,
 	"db_driver" : "mysql",
 	"db_host" : "127.0.0.1",
 	"db_port" : "3306",
