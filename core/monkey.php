@@ -22,16 +22,19 @@ require_once "core/models/model_parser.php";
 
 require_once "core/services/auth.php";
 
-Monkey\Register::init();
-Monkey\Config::init();
-Monkey\Router::init();
-
-Monkey\AppLoader::init();
-
-Monkey\Dist\DB::init();
-Monkey\Services\Auth::init();
-
-
 if (file_exists("vendor/autoload.php")){
     require_once "vendor/autoload.php";
 }
+
+// Load Configuration And Caches
+Monkey\Register::init();
+Monkey\Config::init();
+
+// Load Applications
+Monkey\AppLoader::init();
+
+Monkey\Router::init();
+
+// Services
+Monkey\Dist\DB::init();
+Monkey\Services\Auth::init();

@@ -16,6 +16,7 @@ class AppLoader
 
     public static $views_directories = [];
     public static $app_directories = [];
+    public static $config_paths = [];
 
     public static $autoload_list = [];
 
@@ -73,6 +74,10 @@ class AppLoader
             }
             else 
             {
+                if ($file === "monkey.json"){
+                    array_push(AppLoader::$config_paths, $file_path);
+                    continue;
+                }
                 if (substr($file, -4) !== ".php") continue;
                 array_push($results, $file_path);
             }
@@ -101,7 +106,8 @@ class AppLoader
         {
             Register::set(AppLoader::CACHE_FILE_NAME, [
                 "views_directories"=> AppLoader::$views_directories,
-                "autoload_list"=> AppLoader::$autoload_list
+                "autoload_list"=> AppLoader::$autoload_list,
+                "config_paths" => AppLoader::$config_paths
             ]);
         }  
     }
@@ -128,6 +134,7 @@ class AppLoader
             $data = Register::get(AppLoader::CACHE_FILE_NAME);
             AppLoader::$views_directories   = $data["views_directories"];
             AppLoader::$autoload_list       = $data["autoload_list"];
+            AppLoader::$config_paths        = $data["config_paths"];
         } 
         else
         {
@@ -138,10 +145,14 @@ class AppLoader
         Config::set_discrete("views-directory", AppLoader::$views_directories);
         spl_autoload_register(function()
         {
-            foreach(AppLoader::$autoload_list as $dir)
+            foreach (AppLoader::$autoload_list as $dir)
             {
                 include($dir);
             }
         });
+
+        foreach (AppLoader::$config_paths as $path){
+            Config::read_file($path);
+        }
     }
 }

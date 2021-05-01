@@ -11,7 +11,32 @@ use Monkey\Web\Trash;
 class Config
 {
     /**
+     * Read a file if it exists
+     * If an error happend while reading json, Trash will handle a fatal error
+     * Merge the read json and the already existing configuration
+     */
+    public static function read_file(string $path){
+        if (!file_exists($path)) return false;
+        
+        $content = (array) json_decode(file_get_contents($path));
+
+        $last_error = json_last_error();
+        if ($last_error !== JSON_ERROR_NONE){
+            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !");
+        }
+
+        foreach ($content as $key => $value){
+            Config::set($key, $value);
+        }
+    }
+
+
+
+    /**
      * Save the current configuration in monkey.json
+     * 
+     * @deprecated This function save the whole configuration in `./monkey.json` 
+     * But now, configuration can be set in multiples files
      */
     public static function save() : void
     {
@@ -78,47 +103,14 @@ class Config
 
 
 
-
-    /**
-     * Read monkey.json (and the extra ones if there's any)
-     * and return the configuration
-     * 
-     * @return array Read configuration
-     */
-    public static function read_config() : array 
-    {
-        $cfg = (array) json_decode(file_get_contents("monkey.json"));
-
-        if (isset($cfg["extra_config"]))
-        {
-            $more_files = $cfg["extra_config"];
-            if (is_string($more_files)) $more_files = [$more_files];
-            if (is_array($more_files)){
-                foreach($more_files as $f){
-                    if (!is_file($f)) continue;
-                    $extra = (array) json_decode(file_get_contents($f));
-                    $cfg = array_merge($cfg, $extra);
-                }
-            }
-
-        }
-        return $cfg;
-    }
-
-
     /**
      * Initialize the component, read the
      * configuration from either the json file(s)
      */
     public static function init()
     {
-        if (!file_exists("monkey.json")) {
-            Trash::fatal("monkey.json doesn't exists !");
-        };
-        
-        $cfg = Config::read_config();
-
-        $GLOBALS["monkey"]["config"] = $cfg;
+        $GLOBALS["monkey"]["config"] = [];
+        Config::read_file("./monkey.json");
     }
 
 
