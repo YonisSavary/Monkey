@@ -8,8 +8,17 @@ namespace Monkey\Web;
  */
 class Request
 {
-    const GET = 0;
-    const POST = 1;
+	// Retrieve() use a mask feature
+	// To know which mode are we using
+	// with this condition (with $mode = Request::AUTO): 
+	// ($mode & Request::GET) === Request::POST is 
+	// is equal to :
+	// 0b00000010 & 0b00000001 === 0b00000001
+	// 0b00000010 === 0b0000001
+
+    const GET  = 0b00000001;
+    const POST = 0b00000010;
+	const AUTO = 0b11111111;
 
     public $path;
     public $method;
@@ -21,65 +30,64 @@ class Request
     public $files;
 
 
-
     // In case you want to store more informations
     public $storage = [];
 
     public function __construct()
     {
-        $this->get = $_GET;
-        $this->post = $_POST;
-        $this->files = $_FILES;
+		$this->request 	= $_REQUEST;
+		$this->session 	= $_SESSION;
+
+        $this->get 		= $_GET;
+        $this->post 	= $_POST;
+        $this->files 	= $_FILES;
+
+		$this->cookie 	= $_COOKIE;
     }
-
-
 
 
 
     /**
      * - Get one or multiples keys from the `Request` Object
+	 * - If you give a string in `$keys`, the function will return either the value or null
      * - Returning an associative array with the needed keys and their values
      * - Replace any missing key by `null` !
      * 
      * @param array|string $keys Keys to retrieve
-     * @param int $mode Request::[GET,POST], choose either from GET or POST data
+     * @param int $mode Request::[AUTO,GET,POST]
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
      * @return array Values from the request data
      */
-    public function retrieve(array|string $keys, int $mode=Request::GET, bool $secure=true) : array
+    public function retrieve(array|string $keys, int $mode=Request::AUTO, bool $secure=true) : mixed
     {
-        if (!is_array($keys)) $keys = [$keys];
+		$one_param = (!is_array($keys));
+        if ($one_param) $keys = [$keys];
 
-        $storage = null;
-        if ($mode === Request::GET) $storage = &$this->get;
-        if ($mode === Request::POST) $storage = &$this->post;
-        if ($storage === null) Trash::fatal("Bad API Mode for retrieve function !");
+		// Mode and their storages
+		$storages = [
+			Request::GET  => &$this->get, 
+			Request::POST => &$this->post
+		];
 
         $values = [];
         foreach ($keys as $k)
         {
-            if (!key_exists($k, $storage)){
-                $values[$k] = null;
-            } else {
-                $values[$k] = ($secure) ? htmlspecialchars($storage[$k]) : $storage[$k];
-            } 
+			foreach ($storages as $theMode => $theStorage){
+				if ( (($mode & $theMode) !== $theMode)   
+				||   (!isset($theStorage[$k]))   ){
+					// If the asked mode doesn't match or the storage doesn't hold any value
+					// We skip it
+					$values[$k] = null;
+					continue;
+				}
+				$values[$k] = ($secure) ? htmlspecialchars($theStorage[$k]) : $theStorage[$k];
+				break;
+			}
         }
         
-        return $values;
-    }
-
-
-
-    /**
-     * This function follow the same behavior as Request->retrieve but return the
-     * value of a key directly instead of returning an array
-     * 
-     * @param string $keys Keys to retrieve
-     * @param int $mode Request::[GET,POST], choose either from GET or POST data
-     * @param bool $secure Should the function protect values with htmlspecialchars() ?
-     */
-    public function retrieveOne(string $key, mixed $default, int $mode=Request::GET, bool $secure=true) {
-        return $this->retrieve($key, $mode, $secure)[$key] ?? $default;
+		if ($one_param === true) $values = $values[$keys[0]] ?? null;
+		
+        return ($values === []) ? null : $values;
     }
 
 

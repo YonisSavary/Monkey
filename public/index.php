@@ -23,7 +23,11 @@ require_once "../core/monkey.php";
 /* Basic Route Example */
 
 Router::add_temp("/", function(Request $req){
-    return Response::json(["status"=>"It's does works"]);
+    return Response::json([
+		"status"=>"It's does works",
+		"param1"=> $req->retrieve("param1"),
+		"param2"=> $req->retrieve(["param1", "param2"])
+	]);
 });
 
 /**
