@@ -142,7 +142,7 @@ class AppLoader
         }
 
 
-        Config::set_discrete("views-directory", AppLoader::$views_directories);
+        Config::set("views-directory", AppLoader::$views_directories);
         spl_autoload_register(function()
         {
             foreach (AppLoader::$autoload_list as $dir)

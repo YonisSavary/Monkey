@@ -52,7 +52,7 @@ class Renderer
      */
     public static function find_template(string $template_name) : mixed
     {
-        foreach (Config::get_discrete("views-directory") as $dir)
+        foreach (Config::get("views-directory") as $dir)
         {
             $result = Renderer::find_template_recursive($dir, $template_name);
             if ($result !== null) return $result ;

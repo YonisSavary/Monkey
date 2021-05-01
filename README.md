@@ -190,22 +190,6 @@ Notes :
  to `false` in `monkey.json`, or by deleting `config/apploader.json` if you do not want to disable it
     
 
-    
-## Discrete Configuration elements
-
-Discretes elements can be stored in your configurations, they have the same purpose
-at the basics one, but they are temporary as they are not stored in `monkey.json` file 
-
-<pre>
-Config::exists_discrete("foo")
-Config::set_discrete("foo", "yes")
-Config::get_discrete("foo") // "yes"
-</pre>
-    
-
-
-
-
 
 
 
