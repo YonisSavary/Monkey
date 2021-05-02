@@ -82,7 +82,7 @@ class Router
      * @param array $methods Routes HTTP methods (optionnal) 
      * @return stdClass the new route
      */
-    public static function get_route(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : stdClass
+    public static function get_route(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=null) : stdClass
     {
         $new_route = new stdClass();
         $new_route->path = $path;
@@ -231,7 +231,7 @@ class Router
         // Create the controller and execute the route callback
         $controller = new $controller_class();
         if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
-        return $controller->$method( $custom_args ?? Router::$request);
+        return $controller->$method( $custom_args ?? Request::current());
     }
 
 
@@ -246,62 +246,54 @@ class Router
     public static function route_current() : void
     {
         $routes_all = array_merge(Router::$list, Router::$temp);
-        $req_path = $_SERVER["REQUEST_URI"];
-        $req_path = preg_replace("/\?.+/", "", $req_path);
-        $req_method = $_SERVER["REQUEST_METHOD"];
+		$req = Request::build();
+
         foreach($routes_all as $route)
         {
             if (!isset($route->path)) continue;
-            if (!isset($route->regex)){
-                $route->regex = Router::get_regex($route->path);
-            }
-            if (preg_match($route->regex, $req_path) === 0) continue;
+            if (!isset($route->regex)) $route->regex = Router::get_regex($route->path);
+            if (preg_match($route->regex, $req->path) === 0) continue;
             
+            if (count($route->methods ?? []) > 0)
+            {
+                if (!in_array($req->method, $route->methods)) continue;
+            }
+
+
+			$req->slugs = Router::build_slugs($route->path, $req->path);
+            Request::$current = $req;
+
+			// Executing Callbacks
+			foreach ($route->middlewares ?? [] as $middleware_name)
+			{
+				if (is_callable($middleware_name))
+				{
+					$res = $middleware_name();
+				}
+				else 
+				{
+					$middleware_name = "Middlewares\\".$middleware_name;
+					if (!class_exists($middleware_name)) Trash::fatal("$middleware_name does not exists!");
+
+					$middleware = new $middleware_name();
+					if (!method_exists($middleware, "handle")) Trash::fatal("$middleware_name does not have a 'handle' function");
+					
+					$res = $middleware->handle($req);
+				}
+				Router::displayIfResponse($res);
+			}
+
+
             $to_execute = $route->callback;
-                
-            if (isset($route->methods) && count($route->methods) > 0)
-            {
-                if (!in_array($req_method, $route->methods)) continue;
-            }
+			$response = (is_callable($to_execute))? 
+				$to_execute($req) : 
+				Router::executeRouteCallback($route->callback);
 
-            $req = new Request();
-            $req->path = $req_path;
-            $req->method = $req_method;
-            $req->slugs = Router::build_slugs($route->path, $req_path);
-            Router::$request = $req;
-
-            if (isset($route->middlewares))
-            {
-                foreach ($route->middlewares as $middleware_name)
-                {
-                    if (is_callable($middleware_name))
-                    {
-                        $res = $middleware_name();
-                    }
-                    else 
-                    {
-                        $middleware_name = "Middlewares\\".$middleware_name;
-                        if (!class_exists($middleware_name)) continue;
-                        $middleware = new $middleware_name();
-                        if (!method_exists($middleware, "handle")) continue;
-                        $res = $middleware->handle($req);
-                    }
-                    Router::displayIfResponse($res);
-                }
-            }
-
-            if (is_callable($to_execute))
-            {
-                $response = $to_execute($req);
-            }
-            else 
-            {
-                $response = Router::executeRouteCallback($route->callback);
-            }
             Router::displayIfResponse($response);
+			
             die();
         }
 
-        Trash::send("404", $req_path);
+        Trash::send("404", $req->path);
     }
 }

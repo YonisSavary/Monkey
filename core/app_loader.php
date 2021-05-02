@@ -67,7 +67,7 @@ class AppLoader
                 {
                     array_push(AppLoader::$views_directories, $file_path);
                 } 
-                else if (in_array($file, ["others", "controllers", "models"]))
+                else if (in_array($file, ["others", "controllers", "models", "middlewares"]))
                 {
                     $results = array_merge($results, AppLoader::explore_full_dir($file_path));
                 }

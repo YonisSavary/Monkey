@@ -2,6 +2,8 @@
 
 namespace Monkey\Web;
 
+use Monkey\Router;
+
 /**
  * This class has no other purpose than store
  * `GET`, `POST`, `FILES` variables and the request path & slugs
@@ -29,6 +31,8 @@ class Request
     public $post;
     public $files;
 
+	public static $current = null;
+
 
     // In case you want to store more informations
     public $storage = [];
@@ -46,6 +50,18 @@ class Request
     }
 
 
+	public static function current() : Request {
+		return Request::$current;
+	}
+
+
+	public static function build() : Request {
+		$req = new Request();
+		$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
+		$req->method = $_SERVER["REQUEST_METHOD"];
+
+		return $req;
+	}
 
     /**
      * - Get one or multiples keys from the `Request` Object
