@@ -12,6 +12,8 @@ class DB {
     static $configuration = [];
     static $last_insert_id = null;
 
+	static $fetch_mode = PDO::FETCH_ASSOC;
+
     /**
      * Called function as another function of `DB` is called,
      * basically is you try to call `query` but your connection
@@ -131,15 +133,59 @@ class DB {
      * @param string $query SQL Query to execute
      * @param int $mode PDO mode for fetchAll function (`FETCH_ASSOC` by default)
      */
-    public static function query(string $query, int $mode=PDO::FETCH_ASSOC)
+    public static function query(string $query, mixed ...$params)
     {
         DB::check_connection();
+		$query = DB::quick_prepare($query, ...$params);
+
         $statement = DB::$connection->query($query);
         DB::$last_insert_id = DB::$connection->lastInsertId() ?? null;
+
         if ($statement->rowCount() > 0)
         {
-            return $statement->fetchAll($mode);
+            return $statement->fetchAll(DB::$fetch_mode);
         }
         return [];
     }
+
+
+
+	/**
+	 * This function is simply a homemade prepare function
+	 * It does escapes quotes and put string between new quotes if needed
+	 * 
+	 * @example already_quoted 	quick_prepare("SELECT ... id = {}", "blah") => SELECT ... id = 'blah'
+	 * @example no_quoted		quick_prepare("SELECT ... id = '{}'", "blah") => SELECT ... id = 'blah'
+	 */
+	public static function quick_prepare(string $sql, mixed ...$params){
+		$index = 0;
+	
+		do {
+			$add_quotes = true;
+	
+			preg_match("/\'[^\']{0,}\{\}[^\']{0,}\'/", $sql, $matches, PREG_OFFSET_CAPTURE);
+			$quoted_slot_pos = -1;
+			if (count($matches) > 0){
+				$quoted_slot_pos = $matches[0][1] ?? -1;
+				$quoted_slot_pos += strpos($matches[0][0], "{}");
+			}
+			
+			$next_pos = strpos($sql, "{}");
+			if ($next_pos === false) return $sql;
+	
+			if ($quoted_slot_pos === $next_pos){
+				$add_quotes = false;
+			}
+	
+			$params[$index] = addslashes($params[$index]);
+			$param_str = ($add_quotes && !is_numeric($params[$index]))? "'$params[$index]'" : $params[$index];
+	
+			$sql = preg_replace("/\{\}/", $param_str, $sql, 1);
+	
+			$index++;
+	
+		} while ($next_pos !== false);
+	
+		return $sql;
+	}
 }

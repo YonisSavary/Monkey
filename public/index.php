@@ -1,5 +1,6 @@
 <?php
 
+use Monkey\Dist\DB;
 use Monkey\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -23,11 +24,7 @@ require_once "../core/monkey.php";
 /* Basic Route Example */
 
 Router::add_temp("/", function(Request $req){
-    return Response::json([
-		"status"=>"It's does works",
-		"param1"=> $req->retrieve("param1"),
-		"param2"=> $req->retrieve(["param1", "param2"])
-	]);
+    return Response::json(["status"=>"It's does works"]);
 });
 
 /**
