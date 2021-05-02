@@ -18,7 +18,7 @@ class Renderer
      * @param string $template_name Template name we are looking for
      * @return string the path of the template if found, null if not found
      */
-    public static function find_template_recursive(string $dir, string $template_name, bool $in_dir = false) : mixed
+    public static function find_recursive(string $dir, string $template_name, bool $in_dir = false) : mixed
     {
         if (!is_dir($dir)) return false;
         if (substr($dir, -1) !== "/") $dir .= "/";
@@ -29,7 +29,7 @@ class Renderer
             $file_path = $dir . $file ;
             if (is_dir($file_path))
             {
-                $value = Renderer::find_template_recursive($file_path, $template_name, $in_dir);
+                $value = Renderer::find_recursive($file_path, $template_name, $in_dir);
                 if ($value !== null) return $value;
             }
             else 
@@ -51,12 +51,12 @@ class Renderer
      * @param string $template_name template name we are looking for
      * @return string the path of the template if found, null if not found
      */
-    public static function find_template(string $template_name) : mixed
+    public static function find(string $template_name) : mixed
     {
         foreach (Config::get("views-directory") as $dir)
         {
 			$in_dir = (strpos($template_name, "/") !== false);
-            $result = Renderer::find_template_recursive($dir, $template_name, $in_dir);
+            $result = Renderer::find_recursive($dir, $template_name, $in_dir);
             if ($result !== null) return $result ;
         }
         return null;
@@ -74,7 +74,7 @@ class Renderer
     public static function render(string $template_name, mixed $vars=null, bool $return_raw=false) : mixed
     {
         $GLOBALS["render"] = $vars;
-        $path = Renderer::find_template($template_name);
+        $path = Renderer::find($template_name);
         if ($path === null) Trash::fatal($template_name . " template does not exists !");
         ob_start();
         require_once $path;
