@@ -33,16 +33,25 @@ class DB {
             "port"   => Config::get("db_port"),
             "name"   => Config::get("db_name"),
             "user"   => Config::get("db_user"),
-            "pass"   => Config::get("db_pass")
+            "pass"   => Config::get("db_pass"),
+			"file"	 => Config::get("db_file")
         ];
     }
 
     public static function get_dsn() : string
     {
-        $dsn = DB::$configuration["driver"] . ":";
-        $dsn .= "host=".DB::$configuration["host"].";";
-        $dsn .= "port=".DB::$configuration["port"].";";
-        $dsn .= "dbname=".DB::$configuration["name"].";";
+		$conf = &DB::$configuration;
+        $dsn = $conf["driver"] . ":";
+		if ($conf["driver"] === "sqlite") 
+		{
+			$dsn .= $conf["file"];
+		} 
+		else 
+		{
+			$dsn .= "host=".$conf["host"].";";
+			$dsn .= "port=".$conf["port"].";";
+			$dsn .= "dbname=".$conf["name"].";";
+		}
         return $dsn;
     }
 
@@ -70,7 +79,7 @@ class DB {
         } 
         catch (PDOException $e)
         {
-            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) : ". $e->getMessage());
+            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) <br>PDO Exception : ". $e->getMessage());
         }
         return $connection;
     }

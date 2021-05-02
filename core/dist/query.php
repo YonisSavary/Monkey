@@ -197,10 +197,20 @@ class Query
      */
     public function where(string $field, mixed $value, string $comparator="=") : Query
     {
-        $this->clean_data($value);
-        array_push($this->where, " `$field` $comparator $value ");
-        return $this;
+		return $this->rawWhere(" `$field` $comparator $value ");
     }
+
+
+	/**
+	 * Add a condition to the Query conditions
+	 * 
+	 * @param string $condition condition to add
+	 */
+	public function rawWhere(string $condition) : Query {
+		$this->clean_data($value);
+        array_push($this->where, $condition);
+        return $this;
+	}
 
 
 
