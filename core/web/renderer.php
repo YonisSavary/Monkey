@@ -18,7 +18,7 @@ class Renderer
      * @param string $template_name Template name we are looking for
      * @return string the path of the template if found, null if not found
      */
-    public static function find_template_recursive(string $dir, string $template_name) : mixed
+    public static function find_template_recursive(string $dir, string $template_name, bool $in_dir = false) : mixed
     {
         if (!is_dir($dir)) return false;
         if (substr($dir, -1) !== "/") $dir .= "/";
@@ -29,11 +29,12 @@ class Renderer
             $file_path = $dir . $file ;
             if (is_dir($file_path))
             {
-                $value = Renderer::find_template_recursive($file_path, $template_name);
+                $value = Renderer::find_template_recursive($file_path, $template_name, $in_dir);
                 if ($value !== null) return $value;
             }
             else 
             {
+				if ($in_dir && strpos($file_path, $template_name)) return $file_path;
                 if ($template_name === $file) return $file_path;
             }
         }
@@ -54,7 +55,8 @@ class Renderer
     {
         foreach (Config::get("views-directory") as $dir)
         {
-            $result = Renderer::find_template_recursive($dir, $template_name);
+			$in_dir = (strpos($template_name, "/") !== false);
+            $result = Renderer::find_template_recursive($dir, $template_name, $in_dir);
             if ($result !== null) return $result ;
         }
         return null;

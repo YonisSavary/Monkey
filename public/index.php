@@ -4,6 +4,7 @@ use Monkey\AppLoader;
 use Monkey\Dist\DB;
 use Monkey\Router;
 use Monkey\Services\Auth;
+use Monkey\Web\Renderer;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 
