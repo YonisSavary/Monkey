@@ -220,7 +220,7 @@ class Query
      * @param string $field Field to sort
      * @param string $mode Ordering Mode (ASC by default)
      */
-    public function order(string $field, string $mode="ASC"): Query
+    public function order_by(string $field, string $mode="ASC"): Query
     {
         array_push($this->order, "$field $mode");
         return $this;
