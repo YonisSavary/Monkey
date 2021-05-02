@@ -2,29 +2,28 @@
 
 chdir("..");
 
-require_once "core/web/web.php";
-require_once "core/web/renderer.php";
-require_once "core/web/request.php";
-require_once "core/web/response.php";
-require_once "core/web/trash.php";
+$basefiles = [
+	"core/web/web.php",
+	"core/web/renderer.php",
+	"core/web/request.php",
+	"core/web/response.php",
+	"core/web/trash.php",
+	"core/config/config.php",
+	"core/config/register.php",
+	"core/app_loader.php",
+	"core/router.php",
+	"core/dist/database.php",
+	"core/dist/query.php",
+	"core/models/model.php",
+	"core/models/model_parser.php",
+	"core/services/auth.php",
+	"vendor/autoload.php"
+];
 
-require_once "core/config/config.php";
-require_once "core/config/register.php";
-
-require_once "core/app_loader.php";
-require_once "core/router.php";
-
-require_once "core/dist/database.php";
-require_once "core/dist/query.php";
-
-require_once "core/models/model.php";
-require_once "core/models/model_parser.php";
-
-require_once "core/services/auth.php";
-
-if (file_exists("vendor/autoload.php")){
-    require_once "vendor/autoload.php";
+foreach ($basefiles as $intern_file){
+	if (file_exists($intern_file)) require_once $intern_file;
 }
+
 
 // Load Configuration And Caches
 Monkey\Config::init();
