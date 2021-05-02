@@ -27,8 +27,8 @@ if (file_exists("vendor/autoload.php")){
 }
 
 // Load Configuration And Caches
-Monkey\Register::init();
 Monkey\Config::init();
+Monkey\Register::init();
 
 // Load Applications
 Monkey\AppLoader::init();

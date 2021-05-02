@@ -10,7 +10,7 @@ namespace Monkey;
 class Register 
 {
     // Directory where the .json files are stored
-    public static $store = "./config";
+    public static $store = "./cache";
 
     /**
      * Load the .json files in Register::$store into the global variable
@@ -89,7 +89,7 @@ class Register
      */
     public static function init()
     {
-        if (Config::exists("register_store")) Register::$store = Config::get("register_store");
+        Register::$store = Config::get("register_store", "./cache");
         if (substr(Register::$store, -1) !== "/") Register::$store .= "/";
         if (!is_dir(Register::$store)) mkdir(Register::$store);
         Register::load_files();
