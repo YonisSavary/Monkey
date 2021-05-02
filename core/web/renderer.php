@@ -71,7 +71,7 @@ class Renderer
      * @param string $template_name template name we are looking for
      * @param bool $flush If set to `true' the function return a `Response` object
      */
-    public static function render(string $template_name, mixed $vars=null, bool $flush=true) : mixed
+    public static function render(string $template_name, mixed $vars=null, bool $return_raw=false) : mixed
     {
         $GLOBALS["render"] = $vars;
         $path = Renderer::find_template($template_name);
@@ -79,7 +79,7 @@ class Renderer
         ob_start();
         require_once $path;
         $content = ob_get_clean();
-        if ($flush === false) return $content;
+        if ($return_raw === true) return $content;
         return Response::html($content);
     }
 }
