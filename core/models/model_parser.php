@@ -23,7 +23,6 @@ class ModelParser {
     }
 
 
-
     /**
      * Pretty useful function, its give you the public fields
      * of a model (so its SQL fields by definition)
@@ -33,7 +32,6 @@ class ModelParser {
     {
         return array_keys(get_class_vars($this->model));
     }
-
 
 
     /**

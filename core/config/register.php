@@ -28,8 +28,6 @@ class Register
     }
 
 
-
-
     /**
      * Get a key from the register, $default can be given to 
      * replace the value if inexistant
@@ -44,8 +42,6 @@ class Register
     }
 
 
-
-
     /**
      * Set a value in the register and write its file
      * 
@@ -57,8 +53,6 @@ class Register
         $GLOBALS["monkey"][$key] = $value;
         Register::write($key);
     }
-
-
 
 
     /**
@@ -79,22 +73,17 @@ class Register
     }
     
 
-
-
     /**
      * Initialize the component :
      * - Correct the store path if needed
      * - Create a store repertory if inexistant
      * - Load .json files inside the store dir
      */
-    public static function init()
+    public static function init() : void
     {
         Register::$store = Config::get("register_store", "./cache");
         if (substr(Register::$store, -1) !== "/") Register::$store .= "/";
         if (!is_dir(Register::$store)) mkdir(Register::$store);
         Register::load_files();
     }
-
-
-
 }

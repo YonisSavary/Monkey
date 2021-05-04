@@ -21,7 +21,6 @@ class Response
     }
     
     
-
     /**
      * This function display objects in JSON, but also send
      * a `application/json` header for browsers like Mozilla
@@ -38,7 +37,6 @@ class Response
     }
 
 
-
     /**
      * Show the content of the `Response`
      * with the appropriate header
@@ -50,7 +48,6 @@ class Response
     }
 
 
-
     /**
      * Send a file as a Response
      * 
@@ -60,11 +57,11 @@ class Response
      */
     public static function send_file(string $path, bool $delete=false, bool $secure=false)
     {
-        if ($secure === true){
-            foreach(["/etc", "/opt", "/windows", ".."] as $word){
-                if (strpos($path, $word) !== false){
-                    return false;
-                }
+        if ($secure === true)
+		{
+            foreach(["/etc", "/opt", "/windows", ".."] as $word)
+			{
+                if (strpos($path, $word) !== false) return false;
             }
         }
 

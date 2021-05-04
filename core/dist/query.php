@@ -55,9 +55,6 @@ class Query
     public $set = [];
 
 
-
-
-
     /**
      * Class constructor, really important !
      * 
@@ -99,8 +96,6 @@ class Query
     }
 
 
-
-
     /**
      * Add slashes to values (as SQL can interpret 
      * number between quotes as number is it not blocking)
@@ -124,7 +119,6 @@ class Query
     }
 
 
-
     /**
      * Add a OR condition to the WHERE array
      * 
@@ -135,9 +129,6 @@ class Query
         array_push($this->where, " OR ");
         return $this;
     }
-
-
-
 
     
     /**
@@ -150,12 +141,6 @@ class Query
         array_push($this->where, " AND ");
         return $this;
     }
-
-
-
-
-    
-
 
 
     /**
@@ -172,7 +157,6 @@ class Query
     }
 
 
-
     /**
      * VALUES statement part for INSERT queries
      * 
@@ -184,8 +168,6 @@ class Query
         array_push($this->values, "(". join(",", $values ) .")");
         return $this;
     }
-
-
 
 
     /**
@@ -213,7 +195,6 @@ class Query
 	}
 
 
-
     /**
      * Order Statement for SELECT queries
      * 
@@ -225,7 +206,6 @@ class Query
         array_push($this->order, "$field $mode");
         return $this;
     }
-
 
 
     /**
@@ -242,7 +222,6 @@ class Query
     }
 
 
-
     /**
      * Offset part 
      * 
@@ -256,8 +235,8 @@ class Query
     }
 
 
-
-    public function build_order() : string {
+    public function build_order() : string 
+	{
         if (count($this->order) > 0){
             return " ORDER BY ". join(", ", $this->order);
         }
@@ -279,8 +258,6 @@ class Query
     }
 
 
-
-
     /**
      * Build the final Query for READ mode
      * 
@@ -296,8 +273,6 @@ class Query
         return $this->query;
     }
 
-
-
     
     /**
      * Build the final Query for CREATE mode
@@ -310,8 +285,6 @@ class Query
         $this->query .= join(", ", $this->values);
         return $this->query;
     }
-
-
 
     
     /**
@@ -329,8 +302,6 @@ class Query
         return $this->query;
     }
 
-
-
     
     /**
      * Build the final Query for DELETE mode
@@ -345,8 +316,6 @@ class Query
         $this->query .= $this->limit;
         return $this->query;
     }
-
-
 
 
     /**
@@ -373,7 +342,6 @@ class Query
                 break;
         }
     }
-
 
 
     /**

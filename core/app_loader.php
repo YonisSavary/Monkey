@@ -4,11 +4,12 @@ namespace Monkey;
 
 /**
  * This class can load "applications", an application is made of 
- * 4 directories :
+ * 4 directories (+1 Optionnal):
  * - controllers
  * - middlewares
  * - models
  * - views
+ * - others (optionnal)
  */
 class AppLoader
 {
@@ -21,9 +22,16 @@ class AppLoader
     public static $autoload_list = [];
 
 
-    public static function explore_full_dir(string $path){
+	/**
+	 * Gives every paths of every files in a directory
+	 * - Recursive Function
+	 * - Does not returns Directories Path (only files)
+	 * @param string $path
+	 */
+    public static function explore_full_dir(string $path) : mixed
+	{
         if (!is_dir($path)) return false;
-        if (substr($path, -1) != "/") $path .= "/";
+        if (!str_ends_with($path, "/")) $path .= "/";
         $results = [];
         foreach (scandir($path) as $file)
         {
@@ -48,9 +56,8 @@ class AppLoader
      * if a directory is named `views` it is ignored and its path 
      * is added to `AppLoader::$views_directories`
      * 
-     * @param string $path Path of the directory to explore
-     * @param bool $recursive Do the function call itself for subdirectories ?
-     * @return array Classes Files inside the explored directory
+     * @param string $path Path of the application to load
+     * @return array PHP Files to load
      */
     public static function load_application(string $path) : array
     {
@@ -59,7 +66,6 @@ class AppLoader
         $results = [];
         foreach (scandir($path) as $file)
         {
-            if ($file === "." || $file === "..") continue;
             $file_path = $path . $file;
             if (is_dir($file_path))
             {
@@ -72,14 +78,9 @@ class AppLoader
                     $results = array_merge($results, AppLoader::explore_full_dir($file_path));
                 }
             }
-            else 
+            else if ($file === "monkey.json")
             {
-                if ($file === "monkey.json"){
-                    array_push(AppLoader::$config_paths, $file_path);
-                    continue;
-                }
-                if (substr($file, -4) !== ".php") continue;
-                array_push($results, $file_path);
+				array_push(AppLoader::$config_paths, $file_path);
             }
         }
         return $results;
@@ -88,10 +89,7 @@ class AppLoader
 
 
     /**
-     * Loads the given applications paths
-     * 
-     * @param array $apps Array of applications paths
-     * @note If the `cached_apploader` is set to true in monkey.ini, it will use the `Register component`
+     * Loads the applications in AppLoader::$app_directories
      */
     public static function load_applications() : void
     {
@@ -120,14 +118,16 @@ class AppLoader
      * - Find the applications paths
      * - Load the php files with `spl_autoload_register`
      * 
-     * @note If the `cached_apploader` is set to true in monkey.ini, it will use the `Register component`
      */
     public static function init() : void
     {
         $cfg_app = Config::get("app_directories", []);
         if (is_string($cfg_app)) $cfg_app = [$cfg_app];
+
         AppLoader::$app_directories = $cfg_app;
 
+		// If "cached_apploader" is true
+		// And "cached_apploader.json" exists 
         if ( Config::get(AppLoader::CACHE_FILE_NAME)    === true 
         &&   Register::get(AppLoader::CACHE_FILE_NAME)  !== null )
         {
@@ -141,9 +141,9 @@ class AppLoader
             AppLoader::load_applications();
         }
 
-
         Config::set("views-directory", AppLoader::$views_directories);
-        spl_autoload_register(function()
+
+		spl_autoload_register(function()
         {
             foreach (AppLoader::$autoload_list as $dir)
             {
@@ -151,8 +151,6 @@ class AppLoader
             }
         });
 
-        foreach (AppLoader::$config_paths as $path){
-            Config::read_file($path);
-        }
+		Config::read_file(AppLoader::$config_paths);
     }
 }

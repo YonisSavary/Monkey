@@ -14,8 +14,19 @@ class Config
      * Read a file if it exists
      * If an error happend while reading json, Trash will handle a fatal error
      * Merge the read json and the already existing configuration
+	 * 
+	 * @param string|array $path A file Path or an array of
      */
-    public static function read_file(string $path){
+    public static function read_file(string|array $path)
+	{
+		if (is_array($path)){
+			$res = true;
+			foreach ($path as $p){
+				$res &= Config::read_file($p);
+			}
+			return $res;
+		}
+
         if (!file_exists($path)) return false;
         
         $content = (array) json_decode(file_get_contents($path));
@@ -28,8 +39,9 @@ class Config
         foreach ($content as $key => $value){
             Config::set($key, $value);
         }
-    }
 
+		return true;
+    }
 
 
     /**
@@ -46,7 +58,6 @@ class Config
     }
 
 
-
     /**
      * Check if a key exists in the config
      * 
@@ -57,7 +68,6 @@ class Config
     {
         return isset($GLOBALS["monkey"]["config"][$key]);
     }
-
 
 
     /**
@@ -74,7 +84,6 @@ class Config
     }
 
 
-
     /**
      * Get a key from the register, $default can be given to 
      * replace the value if inexistant
@@ -89,7 +98,6 @@ class Config
     }
 
 
-
     /**
      * Set a new key/value pair in the configuration
      * 
@@ -102,7 +110,6 @@ class Config
     }
 
 
-
     /**
      * Initialize the component, read the
      * configuration from either the json file(s)
@@ -112,5 +119,4 @@ class Config
         $GLOBALS["monkey"]["config"] = [];
         Config::read_file("./monkey.json");
     }
-
 }

@@ -21,7 +21,9 @@ class DB {
      */
     public static function check_connection() : void
     {
-        if (DB::$connection === null) Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(");
+        if (DB::$connection === null){
+			Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(");
+		} 
     }
 
 
@@ -66,12 +68,14 @@ class DB {
     {
         if (Config::get("db_enabled") !== true) return false;
         DB::load_configuration();
+	    DB::$connection = DB::get_connection(DB::$configuration["user"], DB::$configuration["pass"]);
 
-        DB::$connection = DB::get_connection(DB::$configuration["user"], DB::$configuration["pass"]);
         return true;
     }
 
-    public static function get_connection(string $user, string $password, string $custom_dsn=null){
+
+    public static function get_connection(string $user, string $password, string $custom_dsn=null) : PDO
+	{
         try
         {
             $dsn = $custom_dsn ?? DB::get_dsn();
@@ -83,7 +87,6 @@ class DB {
         }
         return $connection;
     }
-
 
 
     /**
@@ -98,7 +101,6 @@ class DB {
     }
 
 
-
     /**
      * Link to PDO::bindParam
      * 
@@ -111,8 +113,6 @@ class DB {
         DB::$connection->bindParam($bind, $value);
     }
 
-
-    
 
     /**
      * Execute the PDO prepared request and return the results
@@ -142,7 +142,7 @@ class DB {
      * @param string $query SQL Query to execute
      * @param int $mode PDO mode for fetchAll function (`FETCH_ASSOC` by default)
      */
-    public static function query(string $query, mixed ...$params)
+    public static function query(string $query, mixed ...$params) : array
     {
         DB::check_connection();
 		$query = DB::quick_prepare($query, ...$params);
@@ -166,7 +166,8 @@ class DB {
 	 * @example already_quoted 	quick_prepare("SELECT ... id = {}", "blah") => SELECT ... id = 'blah'
 	 * @example no_quoted		quick_prepare("SELECT ... id = '{}'", "blah") => SELECT ... id = 'blah'
 	 */
-	public static function quick_prepare(string $sql, mixed ...$params){
+	public static function quick_prepare(string $sql, mixed ...$params) : string
+	{
 		$index = 0;
 	
 		do {

@@ -9,10 +9,8 @@ use stdClass;
 
 class Router 
 {
-    public static $list = []; // Current routes of the framework
+    public static $list = []; // Current routes list
     public static $temp = []; // Not saved routes, used in `route_current` function
-    
-    public static $request = null;
 
 
     /**
@@ -41,7 +39,6 @@ class Router
     }
 
 
-
     /**
      * Initialize the component :
      * - Create an empty routes list if inexistant
@@ -51,7 +48,6 @@ class Router
     {
         Router::$list = Register::get("routes", []);
     }
-
 
 
     /**
@@ -69,7 +65,6 @@ class Router
         $regex = "/^$regex$/";
         return $regex;
     }
-
 
 
     /**
@@ -95,8 +90,6 @@ class Router
     }
     
 
-
-
     /**
      * Add a temporary route in `Router::$temp`
      * 
@@ -106,13 +99,11 @@ class Router
      * @param array $middlewares Routes Middlewares (optionnal) (classnames)
      * @param array $methods Routes HTTP methods (optionnal) 
      */
-    public static function add_temp(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
+    public static function add(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
         $new_routes = Router::get_route($path, $callback, $name, $middlewares, $methods);
         array_push(Router::$temp, $new_routes);
     }
-
-
 
     
     /**
@@ -124,14 +115,13 @@ class Router
      * @param array $middlewares Routes Middlewares (optionnal) (classnames)
      * @param array $methods Routes HTTP methods (optionnal) 
      */
-    public static function add(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
+    public static function add_to_register(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
         $new_routes = Router::get_route($path, $callback, $name, $middlewares, $methods);
         array_push(Router::$list, $new_routes);
         Register::set("routes", Router::$list);
     }
     
-
 
     /**
      * Remove a route from the `Router::$list` array
@@ -150,8 +140,9 @@ class Router
         }
     }
 
+
     /**
-     * Check if a route exists (from the `Router::$list` array)
+     * Check if a route exists (from the `Router::$list` and 'Router::$temp' array)
      * 
      * @param string $nameOrRoute Can be either a route name of 
      * a route path
@@ -159,18 +150,16 @@ class Router
     public static function exists(string $nameOrRoute)
     {
         if ($nameOrRoute === '' || $nameOrRoute === null) return false;
-        foreach (Router::$list as &$route)
-        {
-            if(($route->path === $nameOrRoute && $route->path!==null)
-              ||($route->name === $nameOrRoute && $route->name!==null))
-            {
-                return true;
-            }
-        }
+		foreach (array_merge(Router::$list, Router::$temp) as $route)
+		{
+			if(($route->path === $nameOrRoute && $route->path!==null)
+			|| ($route->name === $nameOrRoute && $route->name!==null))
+			{
+				return true;
+			}
+		}
         return false;
     }
-
-
 
 
     /**
@@ -181,7 +170,7 @@ class Router
      * @param string $route_path Path of the Route Object 
      * @param string $request_path Path of the HTTP Request
      * @return array Slugs array
-     * @example ``` Router::build_slugs("/example/{user_id}", "/example/123") => Array( "user_id"=>123 )
+     * @example simple_use Router::build_slugs("/example/{user_id}", "/example/123") => Array( "user_id"=>123 )
      */
     public static function build_slugs(string $route_path, string $request_path) : array
     {
@@ -189,7 +178,7 @@ class Router
         $request_parts = explode("/", $request_path);
         $slugs = [];
 
-        for ($i=0; $i<count($route_parts); $i++)
+        for ($i=0; $i < count($route_parts); $i++)
         {
             $pattern = $route_parts[$i];
             if (!preg_match("/\{.+\}/", $pattern)) continue;
@@ -201,18 +190,17 @@ class Router
     } 
 
 
-
     /**
      * Given an object, this function display its
      * content if it is a Response Object (and then die)
      * 
-     * @param mixed $reqOrSomething Object to check
+     * @param mixed $object Object to check
      */
-    public static function displayIfResponse(mixed $reqOrSomething)
+    public static function display_if_response(mixed $object) : void
     {
-        if ($reqOrSomething instanceof Response)
+        if ($object instanceof Response)
         {
-            $reqOrSomething->reveal();
+            $object->reveal();
             die();
         }
     }
@@ -221,19 +209,40 @@ class Router
     /**
      * Call a Route callback and return the value
      */
-    public static function executeRouteCallback(string $to_execute, mixed $custom_args=null)
+    public static function execute_route_callback(string|callable $to_execute, mixed $custom_args=null) : mixed
     {
+		if (is_callable($to_execute)) return $to_execute(Request::current());
         // Discompose the `callback` attribute
         $callback_parts = explode("->", $to_execute);
         $controller_class = "Controllers\\".$callback_parts[0];
         $method = $callback_parts[1];
-        if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
+
         // Create the controller and execute the route callback
+        if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
         $controller = new $controller_class();
+
         if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
         return $controller->$method( $custom_args ?? Request::current());
     }
 
+
+	/**
+	 * Given a middleware name, this functions return what the middleware
+	 * will return (every middleware handle function is called with 
+	 * the current request as first parameter)
+	 */
+	public static function execute_middleware(string $middleware_name) : mixed
+	{
+		if (is_callable($middleware_name)) return $middleware_name(Request::$current);
+	
+		$middleware_name = "Middlewares\\".$middleware_name;
+		if (!class_exists($middleware_name)) Trash::fatal("$middleware_name does not exists!");
+
+		$middleware = new $middleware_name();
+		if (!method_exists($middleware, "handle")) Trash::fatal("$middleware_name does not have a 'handle' function");
+		
+		return $middleware->handle(Request::current());
+	}
 
     
     /**
@@ -259,41 +268,22 @@ class Router
                 if (!in_array($req->method, $route->methods)) continue;
             }
 
-
 			$req->slugs = Router::build_slugs($route->path, $req->path);
             Request::$current = $req;
 
 			// Executing Callbacks
 			foreach ($route->middlewares ?? [] as $middleware_name)
 			{
-				if (is_callable($middleware_name))
-				{
-					$res = $middleware_name();
-				}
-				else 
-				{
-					$middleware_name = "Middlewares\\".$middleware_name;
-					if (!class_exists($middleware_name)) Trash::fatal("$middleware_name does not exists!");
-
-					$middleware = new $middleware_name();
-					if (!method_exists($middleware, "handle")) Trash::fatal("$middleware_name does not have a 'handle' function");
-					
-					$res = $middleware->handle($req);
-				}
-				Router::displayIfResponse($res);
+				$res = Router::execute_middleware($middleware_name);
+				Router::display_if_response($res);
 			}
 
-
-            $to_execute = $route->callback;
-			$response = (is_callable($to_execute))? 
-				$to_execute($req) : 
-				Router::executeRouteCallback($route->callback);
-
-            Router::displayIfResponse($response);
+			$response = Router::execute_route_callback($route->callback);
+            Router::display_if_response($response);
 			
             die();
         }
-
+		// Route not found
         Trash::send("404", $req->path);
     }
 }

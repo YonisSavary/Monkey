@@ -23,11 +23,10 @@ class Auth
      * 
      * @param string $password
      */
-    public static function create_password(string $password)
+    public static function create_password(string $password) : string
     {
         return password_hash($password, PASSWORD_BCRYPT, ["cost"=>8]);
     }
-
 
 
     /**
@@ -37,7 +36,6 @@ class Auth
     public static function init()
     {
         session_start();
-
         
         if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
         if (Config::get("auth_enabled") !== true) return null;
@@ -78,7 +76,6 @@ class Auth
     }
 
 
-
     /**
      * Given a login and a password, this function check 
      * a user with this login and password exists
@@ -94,9 +91,6 @@ class Auth
         $pfield = Auth::$pass_field;
         return password_verify($password, $user->$pfield);
     }
-
-
-
 
     
     /**
@@ -126,8 +120,6 @@ class Auth
     }
 
 
-
-
     /**
      * Get the total failed attempts number
      */
@@ -135,9 +127,6 @@ class Auth
     {
         return $_SESSION["m_auth_attempt"];
     }
-
-
-
 
 
     /**
@@ -155,27 +144,22 @@ class Auth
     /**
      * Get the client token
      */    
-    public static function token()
+    public static function token() : string|null
     {
         if (!isset($_SESSION["m_auth_token"])) return null;
         return $_SESSION["m_auth_token"];
     }
 
 
-
-
     /**
      * Logout a user and save it into the session
      */
-    public static function logout()
+    public static function logout() : void
     {
         if (isset($_SESSION["m_auth_user"])) unset($_SESSION["m_auth_user"]);
         if (isset($_SESSION["m_auth_token"])) unset($_SESSION["m_auth_token"]);
         $_SESSION["m_auth_logged"] = false;
     }
-
-
-
 
     
     /**
@@ -189,12 +173,11 @@ class Auth
     }
 
 
-
     /**
      * @return mixed return the user model object, it not authenticated
      * or not logged, return true
      */
-    public static function get_user()
+    public static function get_user() : mixed
     {
         if (!isset($_SESSION["m_auth_user"])) return null;
         return $_SESSION["m_auth_user"];

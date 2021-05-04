@@ -41,27 +41,28 @@ class Request
     {
 		$this->request 	= $_REQUEST;
 		$this->session 	= $_SESSION;
-
         $this->get 		= $_GET;
         $this->post 	= $_POST;
         $this->files 	= $_FILES;
-
 		$this->cookie 	= $_COOKIE;
     }
 
 
-	public static function current() : Request {
+	public static function current() : Request 
+	{
 		return Request::$current;
 	}
 
 
-	public static function build() : Request {
+	public static function build() : Request 
+	{
 		$req = new Request();
 		$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
 		$req->method = $_SERVER["REQUEST_METHOD"];
 
 		return $req;
 	}
+
 
     /**
      * - Get one or multiples keys from the `Request` Object
@@ -88,7 +89,8 @@ class Request
         $values = [];
         foreach ($keys as $k)
         {
-			foreach ($storages as $theMode => $theStorage){
+			foreach ($storages as $theMode => $theStorage)
+			{
 				if ( (($mode & $theMode) !== $theMode)   
 				||   (!isset($theStorage[$k]))   ){
 					// If the asked mode doesn't match or the storage doesn't hold any value
@@ -100,11 +102,8 @@ class Request
 				break;
 			}
         }
-        
 		if ($one_param === true) $values = $values[$keys[0]] ?? null;
 		
         return ($values === []) ? null : $values;
     }
-
-
 }

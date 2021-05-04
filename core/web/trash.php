@@ -24,7 +24,7 @@ class Trash
         if (isset(Trash::$error_callbacks[$error])){
             $callback = Trash::$error_callbacks[$error];
             if (is_string($callback)){
-                Router::executeRouteCallback($callback, $arg);
+                Router::execute_route_callback($callback, $arg);
             } 
             else
             {

@@ -339,7 +339,7 @@ Router::get_route();
 
 // Add a temporary route, which is not saved 
 // in the register
-Router::add_temp();
+Router::add();
 
 // Add a route and save it
 Router::add();

@@ -42,8 +42,6 @@ class Renderer
     }
 
 
-
-
     /**
      * Given a template name, this function try to find a template path
      * in the views-directories
@@ -61,8 +59,6 @@ class Renderer
         }
         return null;
     }
-
-
 
     
     /**

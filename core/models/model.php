@@ -30,8 +30,6 @@ abstract class Model
     protected $parser = null;
 
 
-
-
     /**
      * Pretty explicit, get the table name,
      * as $table is protected, a getter is necessary
@@ -40,8 +38,6 @@ abstract class Model
     { 
         return $this->table; 
     }
-
-
 
     
     /**
@@ -75,9 +71,6 @@ abstract class Model
     }
 
 
-
-
-
     /**
      * Create a ModelParser object and throw fatal errors if the model
      * isn't well-defined 
@@ -93,15 +86,13 @@ abstract class Model
     }
 
 
-
-
     /**
      * Add a unparsed value
      * 
      * @param key Unparsed Field name
      * @param mixed $value Field value 
      */
-    public function set_unparsed(string $key, mixed $value)
+    public function set_unparsed(string $key, mixed $value) : void
     {
         $this->unparsed[$key] = $value;
     }
@@ -167,6 +158,7 @@ abstract class Model
         return get_called_class()::build_query([], Query::DELETE);
     }
 
+
     /**
      * Delete the current object in the database
      * this function base its behavior on the primary key value
@@ -178,7 +170,6 @@ abstract class Model
         if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
         $this->delete_from()->where($primary, $this->$primary)->execute();
     }
-
 
 
     /**
@@ -201,10 +192,6 @@ abstract class Model
         $query = "UPDATE " . $this->table . " SET ". join(",", $fields_str) . " WHERE $primary='" . $this->$primary . "';";
         DB::query($query);
     }
-
-
-
-
 
 
     /**
@@ -239,33 +226,41 @@ abstract class Model
      * 
      * 
      */
-    public static function magic_create(array $data){
+    public static function magic_create(array $data)
+	{
         $model_name = get_called_class();
         $new_object = new $model_name();
         $model_fields = $model_name::get_fields();
-        if ( array_keys($data) !== range(0, count($data) - 1) ) {
+
+        if ( array_keys($data) !== range(0, count($data) - 1) ) 
+		{
             // Is array associative ?
-            foreach ($data as $key => $value){
-                if (in_array($key, $model_fields)){
+            foreach ($data as $key => $value)
+			{
+                if (in_array($key, $model_fields))
+				{
                     $new_object->$key = $value;
                 }
             }
             return $new_object;
-        } else if ( count($model_fields) !== count($data) ){
+        } 
+		else if ( count($model_fields) !== count($data) )
+		{
             // Non-associative array, is the array the same size 
             // as the declared model fields
-            for ($i=0; $i<count($model_fields); $i++){
+            for ($i=0; $i<count($model_fields); $i++)
+			{
                 $current_field = $model_fields[$i];
                 $value = $data[$i];
                 $new_object->$current_field = $value;
             }
             return $new_object;
-        } else {
+        } 
+		else 
+		{
             return null;
         }
     }
-
-
 
 
     /**
@@ -274,19 +269,22 @@ abstract class Model
      * This model behave the same as magic_create but 
      * insert an item instead of returning is
      */
-    public static function magic_insert(array $data) : Query {
+    public static function magic_insert(array $data) : Query 
+	{
         $model_name = get_called_class();
         $new_object = $model_name::magic_create($data);
         if ($new_object === null) return null;
 
         $fields_to_insert = $model_name::get_fields();
-        if ( array_keys($data) !== range(0, count($data) - 1) ) {
+        if ( array_keys($data) !== range(0, count($data) - 1) ) 
+		{
             $fields_to_insert = array_keys($data);
         }
 
         $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
         $object_values = array_values($data);
-        foreach ($object_values as &$val){
+        foreach ($object_values as &$val)
+		{
             if (preg_match("/^[0-9.]+$/", $val)) continue;
             $val = "'".addslashes($val)."'";
         }
@@ -295,5 +293,4 @@ abstract class Model
 
         return $query;
     }
-
 }
