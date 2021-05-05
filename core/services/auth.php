@@ -51,16 +51,16 @@ class Auth
         $pass_field = Config::get("auth_pass_field");
         if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $pass_field public field");
 
-        Auth::$model = $model;
-        Auth::$login_field = $login_field;
-        Auth::$pass_field = $pass_field;
-        Auth::$model_name = $model_name;
+        self::$model = $model;
+        self::$login_field = $login_field;
+        self::$pass_field = $pass_field;
+        self::$model_name = $model_name;
 
-        if (Auth::is_logged())
+        if (self::is_logged())
         {
             if ($_SESSION["m_auth_duration"] === 0)
             {
-                Auth::logout();
+                self::logout();
             } 
             else 
             {
@@ -83,10 +83,10 @@ class Auth
      */
     public static function check(string|int $login, string $password) : bool
     {
-        $user = Auth::$model_name::get(Auth::$model->get_primary_key(), Auth::$login_field, Auth::$pass_field)->where(Auth::$login_field, $login)->limit(1)->execute();
+        $user = self::$model_name::get(self::$model->get_primary_key(), self::$login_field, self::$pass_field)->where(self::$login_field, $login)->limit(1)->execute();
         if (count($user) === 0) return false;
         $user = $user[0];
-        $pfield = Auth::$pass_field;
+        $pfield = self::$pass_field;
         return password_verify($password, $user->$pfield);
     }
 
@@ -101,18 +101,18 @@ class Auth
      */
     public static function attempt(string|int $login, string $password): bool
     {
-        if (Auth::check($login, $password))
+        if (self::check($login, $password))
         {
             $_SESSION["m_auth_attempt"] = 0;
-            $u = Auth::$model_name::get_all()->where(Auth::$login_field, $login)->limit(1)->execute();
-            Auth::login($u[0]);
+            $u = self::$model_name::get_all()->where(self::$login_field, $login)->limit(1)->execute();
+            self::login($u[0]);
             return true;
         } 
         else 
         {
             if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
             $_SESSION["m_auth_attempt"]++;
-            Auth::logout();
+            self::logout();
             return false;
         }
     }

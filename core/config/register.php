@@ -13,11 +13,11 @@ class Register
     public static $store = "./cache";
 
     /**
-     * Load the .json files in Register::$store into the global variable
+     * Load the .json files in self::$store into the global variable
      */
     public static function load_files() : void
     {
-        $ser_glob_str = Register::$store . "*.json";
+        $ser_glob_str = self::$store . "*.json";
         $ser_glob = glob($ser_glob_str);
         foreach($ser_glob as $path) {
             //echo "Loading $path <br>"; // DEBUG
@@ -51,7 +51,7 @@ class Register
     public static function set(string $key, mixed $value) : void
     {
         $GLOBALS["monkey"][$key] = $value;
-        Register::write($key);
+        self::write($key);
     }
 
 
@@ -66,7 +66,7 @@ class Register
     {
         if (isset($GLOBALS["monkey"][$key]))
         {
-            file_put_contents(Register::$store . "$key.json", json_encode($GLOBALS["monkey"][$key], JSON_PRETTY_PRINT));
+            file_put_contents(self::$store . "$key.json", json_encode($GLOBALS["monkey"][$key], JSON_PRETTY_PRINT));
             return true;
         }
         return false;
@@ -81,9 +81,9 @@ class Register
      */
     public static function init() : void
     {
-        Register::$store = Config::get("register_store", "./cache");
-        if (substr(Register::$store, -1) !== "/") Register::$store .= "/";
-        if (!is_dir(Register::$store)) mkdir(Register::$store);
-        Register::load_files();
+        self::$store = Config::get("register_store", "./cache");
+        if (substr(self::$store, -1) !== "/") self::$store .= "/";
+        if (!is_dir(self::$store)) mkdir(self::$store);
+        self::load_files();
     }
 }

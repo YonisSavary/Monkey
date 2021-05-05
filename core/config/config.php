@@ -22,7 +22,7 @@ class Config
 		if (is_array($path)){
 			$res = true;
 			foreach ($path as $p){
-				$res &= Config::read_file($p);
+				$res &= self::read_file($p);
 			}
 			return $res;
 		}
@@ -37,7 +37,7 @@ class Config
         }
 
         foreach ($content as $key => $value){
-            Config::set($key, $value);
+            self::set($key, $value);
         }
 
 		return true;
@@ -54,7 +54,7 @@ class Config
     {
         $config = $GLOBALS["monkey"]["config"];
         file_put_contents("monkey.json", json_encode($config, JSON_PRETTY_PRINT));
-        Config::init();
+        self::init();
     }
 
 
@@ -79,7 +79,7 @@ class Config
     public static function multiple_exists(array $keys) : bool
     {
         $exists = true;
-        foreach ($keys as $key) $exists &= Config::exists($key);
+        foreach ($keys as $key) $exists &= self::exists($key);
         return $exists;
     }
 
@@ -93,7 +93,7 @@ class Config
      */
     public static function get(string $key, mixed $default=null) : mixed
     {
-        if (Config::exists($key)) return $GLOBALS["monkey"]["config"][$key];
+        if (self::exists($key)) return $GLOBALS["monkey"]["config"][$key];
         return $default;
     }
 
@@ -117,6 +117,6 @@ class Config
     public static function init()
     {
         $GLOBALS["monkey"]["config"] = [];
-        Config::read_file("./monkey.json");
+        self::read_file("./monkey.json");
     }
 }

@@ -12,8 +12,8 @@ class Request
 {
 	// Retrieve() use a mask feature
 	// To know which mode are we using
-	// with this condition (with $mode = Request::AUTO): 
-	// ($mode & Request::GET) === Request::POST is 
+	// with this condition (with $mode = self::AUTO): 
+	// ($mode & self::GET) === self::POST is 
 	// is equal to :
 	// 0b00000010 & 0b00000001 === 0b00000001
 	// 0b00000010 === 0b0000001
@@ -50,7 +50,7 @@ class Request
 
 	public static function current() : Request 
 	{
-		return Request::$current;
+		return self::$current;
 	}
 
 
@@ -71,19 +71,19 @@ class Request
      * - Replace any missing key by `null` !
      * 
      * @param array|string $keys Keys to retrieve
-     * @param int $mode Request::[AUTO,GET,POST]
+     * @param int $mode self::[AUTO,GET,POST]
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
      * @return array Values from the request data
      */
-    public function retrieve(array|string $keys, int $mode=Request::AUTO, bool $secure=true) : mixed
+    public function retrieve(array|string $keys, int $mode=self::AUTO, bool $secure=true) : mixed
     {
 		$one_param = (!is_array($keys));
         if ($one_param) $keys = [$keys];
 
 		// Mode and their storages
 		$storages = [
-			Request::GET  => &$this->get, 
-			Request::POST => &$this->post
+			self::GET  => &$this->get, 
+			self::POST => &$this->post
 		];
 
         $values = [];

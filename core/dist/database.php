@@ -21,7 +21,7 @@ class DB {
      */
     public static function check_connection() : void
     {
-        if (DB::$connection === null){
+        if (self::$connection === null){
 			Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(");
 		} 
     }
@@ -29,7 +29,7 @@ class DB {
 
     public static function load_configuration() : void
     {
-        DB::$configuration = [
+        self::$configuration = [
             "driver" => Config::get("db_driver"),
             "host"   => Config::get("db_host"),
             "port"   => Config::get("db_port"),
@@ -42,7 +42,7 @@ class DB {
 
     public static function get_dsn() : string
     {
-		$conf = &DB::$configuration;
+		$conf = &self::$configuration;
         $dsn = $conf["driver"] . ":";
 		if ($conf["driver"] === "sqlite") 
 		{
@@ -60,15 +60,15 @@ class DB {
 
     /**
      * Initialize the DB service if `db_enabled` is set to `true`
-     * Create a PDO connection a store it in `DB::$connection`
+     * Create a PDO connection a store it in `self::$connection`
      * 
      * @return bool Was the connection successful ?
      */
     public static function init() : bool
     {
         if (Config::get("db_enabled") !== true) return false;
-        DB::load_configuration();
-	    DB::$connection = DB::get_connection(DB::$configuration["user"], DB::$configuration["pass"]);
+        self::load_configuration();
+	    self::$connection = self::get_connection(self::$configuration["user"], self::$configuration["pass"]);
 
         return true;
     }
@@ -78,7 +78,7 @@ class DB {
 	{
         try
         {
-            $dsn = $custom_dsn ?? DB::get_dsn();
+            $dsn = $custom_dsn ?? self::get_dsn();
             $connection = new PDO($dsn, $user, $password);
         } 
         catch (PDOException $e)
@@ -96,8 +96,8 @@ class DB {
      */
     public static function prepare(string $request) : void
     {
-        DB::check_connection();
-        DB::$connection->prepare($request);
+        self::check_connection();
+        self::$connection->prepare($request);
     }
 
 
@@ -109,8 +109,8 @@ class DB {
      */
     public static function bind(string $bind, mixed $value) : void
     {
-        DB::check_connection();
-        DB::$connection->bindParam($bind, $value);
+        self::check_connection();
+        self::$connection->bindParam($bind, $value);
     }
 
 
@@ -120,9 +120,9 @@ class DB {
      */
     public static function execute() : array
     {
-        DB::check_connection();
-        $statement = DB::$connection->execute();
-        DB::$last_insert_id = DB::$connection->lastInsertId() ?? null;
+        self::check_connection();
+        $statement = self::$connection->execute();
+        self::$last_insert_id = self::$connection->lastInsertId() ?? null;
         if ($statement->rowCount() > 0)
         {
             return $statement->fetchAll();
@@ -144,15 +144,15 @@ class DB {
      */
     public static function query(string $query, mixed ...$params) : array
     {
-        DB::check_connection();
-		$query = DB::quick_prepare($query, ...$params);
+        self::check_connection();
+		$query = self::quick_prepare($query, ...$params);
 
-        $statement = DB::$connection->query($query);
-        DB::$last_insert_id = DB::$connection->lastInsertId() ?? null;
+        $statement = self::$connection->query($query);
+        self::$last_insert_id = self::$connection->lastInsertId() ?? null;
 
         if ($statement->rowCount() > 0)
         {
-            return $statement->fetchAll(DB::$fetch_mode);
+            return $statement->fetchAll(self::$fetch_mode);
         }
         return [];
     }

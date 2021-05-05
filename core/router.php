@@ -34,8 +34,8 @@ class Router
         // Array Values is here to avoid the index problem
         // For an array like ["A", "B", "C"]
         // don't using array_values will give this [0 => "A", 1 => "B", 2 => "C"]
-        Router::$list = array_values(Router::$list);
-        Register::set("routes", Router::$list);
+        self::$list = array_values(self::$list);
+        Register::set("routes", self::$list);
     }
 
 
@@ -46,7 +46,7 @@ class Router
      */
     public static function init() : void
     {
-        Router::$list = Register::get("routes", []);
+        self::$list = Register::get("routes", []);
     }
 
 
@@ -85,13 +85,13 @@ class Router
         $new_route->name = $name;
         $new_route->methods = $methods;
         $new_route->middlewares = $middlewares;
-        $new_route->regex = Router::get_regex($path);
+        $new_route->regex = self::get_regex($path);
         return $new_route;
     }
     
 
     /**
-     * Add a temporary route in `Router::$temp`
+     * Add a temporary route in `self::$temp`
      * 
      * @param string $path Route's Path (URL)
      * @param mixed $callback Route Callback (controllerName->methodName)
@@ -101,13 +101,13 @@ class Router
      */
     public static function add(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
-        $new_routes = Router::get_route($path, $callback, $name, $middlewares, $methods);
-        array_push(Router::$temp, $new_routes);
+        $new_routes = self::get_route($path, $callback, $name, $middlewares, $methods);
+        array_push(self::$temp, $new_routes);
     }
 
     
     /**
-     * Add a route in `Router::$list` and save the framework's routes with `Register`
+     * Add a route in `self::$list` and save the framework's routes with `Register`
      * 
      * @param string $path Route's Path (URL)
      * @param mixed $callback Route Callback (controllerName->methodName)
@@ -117,21 +117,21 @@ class Router
      */
     public static function add_to_register(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
-        $new_routes = Router::get_route($path, $callback, $name, $middlewares, $methods);
-        array_push(Router::$list, $new_routes);
-        Register::set("routes", Router::$list);
+        $new_routes = self::get_route($path, $callback, $name, $middlewares, $methods);
+        array_push(self::$list, $new_routes);
+        Register::set("routes", self::$list);
     }
     
 
     /**
-     * Remove a route from the `Router::$list` array
+     * Remove a route from the `self::$list` array
      * 
      * @param string $nameOrRoute Can be either a route name of 
      * a route path, every maching routes are unsets
      */
     public static function remove(string $nameOrRoute)
     {
-        foreach (Router::$list as &$route)
+        foreach (self::$list as &$route)
         {
             if ($route->path === $nameOrRoute || $route->name === $nameOrRoute)
             {
@@ -142,7 +142,7 @@ class Router
 
 
     /**
-     * Check if a route exists (from the `Router::$list` and 'Router::$temp' array)
+     * Check if a route exists (from the `self::$list` and 'self::$temp' array)
      * 
      * @param string $nameOrRoute Can be either a route name of 
      * a route path
@@ -150,7 +150,7 @@ class Router
     public static function exists(string $nameOrRoute)
     {
         if ($nameOrRoute === '' || $nameOrRoute === null) return false;
-		foreach (array_merge(Router::$list, Router::$temp) as $route)
+		foreach (array_merge(self::$list, self::$temp) as $route)
 		{
 			if(($route->path === $nameOrRoute && $route->path!==null)
 			|| ($route->name === $nameOrRoute && $route->name!==null))
@@ -170,7 +170,7 @@ class Router
      * @param string $route_path Path of the Route Object 
      * @param string $request_path Path of the HTTP Request
      * @return array Slugs array
-     * @example simple_use Router::build_slugs("/example/{user_id}", "/example/123") => Array( "user_id"=>123 )
+     * @example simple_use self::build_slugs("/example/{user_id}", "/example/123") => Array( "user_id"=>123 )
      */
     public static function build_slugs(string $route_path, string $request_path) : array
     {
@@ -254,13 +254,13 @@ class Router
      */
     public static function route_current() : void
     {
-        $routes_all = array_merge(Router::$list, Router::$temp);
+        $routes_all = array_merge(self::$list, self::$temp);
 		$req = Request::build();
 
         foreach($routes_all as $route)
         {
             if (!isset($route->path)) continue;
-            if (!isset($route->regex)) $route->regex = Router::get_regex($route->path);
+            if (!isset($route->regex)) $route->regex = self::get_regex($route->path);
             if (preg_match($route->regex, $req->path) === 0) continue;
             
             if (count($route->methods ?? []) > 0)
@@ -268,18 +268,18 @@ class Router
                 if (!in_array($req->method, $route->methods)) continue;
             }
 
-			$req->slugs = Router::build_slugs($route->path, $req->path);
+			$req->slugs = self::build_slugs($route->path, $req->path);
             Request::$current = $req;
 
 			// Executing Callbacks
 			foreach ($route->middlewares ?? [] as $middleware_name)
 			{
-				$res = Router::execute_middleware($middleware_name);
-				Router::display_if_response($res);
+				$res = self::execute_middleware($middleware_name);
+				self::display_if_response($res);
 			}
 
-			$response = Router::execute_route_callback($route->callback);
-            Router::display_if_response($response);
+			$response = self::execute_route_callback($route->callback);
+            self::display_if_response($response);
 			
             die();
         }

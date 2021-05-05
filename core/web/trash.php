@@ -9,20 +9,20 @@ use Monkey\Router;
  * This class is here to handle errors,
  * when something is wrong, yeet it in the `Trash` and that's it !
  * 
- * To define a custom error handling, call Trash::on(errorCode, callback);
- * Then, everytimes Trash::send(errorCode) is called, you callback will be called too
+ * To define a custom error handling, call self::on(errorCode, callback);
+ * Then, everytimes self::send(errorCode) is called, you callback will be called too
  */
 class Trash 
 {
     static $error_callbacks = [];
 
     public static function on(string $error, callable|string $callback){
-        Trash::$error_callbacks[$error] = $callback;
+        self::$error_callbacks[$error] = $callback;
     }
 
     public static function send(string $error, $arg=null){
-        if (isset(Trash::$error_callbacks[$error])){
-            $callback = Trash::$error_callbacks[$error];
+        if (isset(self::$error_callbacks[$error])){
+            $callback = self::$error_callbacks[$error];
             if (is_string($callback)){
                 Router::execute_route_callback($callback, $arg);
             } 
@@ -40,7 +40,7 @@ class Trash
      */
     public static function fatal(string $message): void
     {
-        Trash::send("fatal", $message);
+        self::send("fatal", $message);
     }
 }
 

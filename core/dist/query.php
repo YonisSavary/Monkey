@@ -61,9 +61,9 @@ class Query
      * @param string $table Table name to work with
      * @param mixed $fields Can be either one field name of an array of fields names
      * @param ModelParser $parser A ModelParser can be given to parse the results of `execute`
-     * @param int $mode CRUD mode (Query::CREATE|READ|UPDATE|DELETE)
+     * @param int $mode CRUD mode (self::CREATE|READ|UPDATE|DELETE)
      */
-    public function __construct(string|array $table, mixed $fields=[],  ModelParser $parser=null, int $mode=Query::READ)
+    public function __construct(string|array $table, mixed $fields=[],  ModelParser $parser=null, int $mode=self::READ)
     {
         if (is_array($table)){
             $table = join(",", $table);
@@ -72,19 +72,19 @@ class Query
         $this->parser = $parser;
         switch ($mode)
         {
-            case Query::CREATE:
+            case self::CREATE:
                 $this->selector = "INSERT INTO $table (". join(", ", $fields) . ") VALUES ";
                 $this->get_results = false;
                 break;
-            case Query::READ:
+            case self::READ:
                 $this->selector = "SELECT ". join(", ", $fields) . " FROM $table ";
                 $this->get_results = true;
                 break;
-            case Query::UPDATE:
+            case self::UPDATE:
                 $this->selector = "UPDATE $table SET ";
                 $this->get_results = false;
                 break;
-            case Query::DELETE:
+            case self::DELETE:
                 $this->selector = "DELETE FROM $table ";
                 $this->get_results = false;
                 break;
@@ -325,16 +325,16 @@ class Query
     {
         switch ($this->mode)
         {
-            case Query::CREATE:
+            case self::CREATE:
                 return $this->build_create();
                 break;
-            case Query::READ:
+            case self::READ:
                 return $this->build_read();
                 break;
-            case Query::UPDATE:
+            case self::UPDATE:
                 return $this->build_update();
                 break;
-            case Query::DELETE:
+            case self::DELETE:
                 return $this->build_delete();
                 break;
             default:

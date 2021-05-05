@@ -29,7 +29,7 @@ class Renderer
             $file_path = $dir . $file ;
             if (is_dir($file_path))
             {
-                $value = Renderer::find_recursive($file_path, $template_name, $in_dir);
+                $value = self::find_recursive($file_path, $template_name, $in_dir);
                 if ($value !== null) return $value;
             }
             else 
@@ -54,7 +54,7 @@ class Renderer
         foreach (Config::get("views-directory") as $dir)
         {
 			$in_dir = (strpos($template_name, "/") !== false);
-            $result = Renderer::find_recursive($dir, $template_name, $in_dir);
+            $result = self::find_recursive($dir, $template_name, $in_dir);
             if ($result !== null) return $result ;
         }
         return null;
@@ -70,7 +70,7 @@ class Renderer
     public static function render(string $template_name, mixed $vars=null, bool $return_raw=false) : mixed
     {
         $GLOBALS["render"] = $vars;
-        $path = Renderer::find($template_name);
+        $path = self::find($template_name);
         if ($path === null) Trash::fatal($template_name . " template does not exists !");
         ob_start();
         require_once $path;
