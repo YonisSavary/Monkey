@@ -35,8 +35,6 @@ class Auth
      */
     public static function init()
     {
-        session_start();
-        
         if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
         if (Config::get("auth_enabled") !== true) return null;
 

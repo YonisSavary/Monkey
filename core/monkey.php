@@ -10,6 +10,7 @@ $basefiles = [
 	"core/web/trash.php",
 	"core/config/config.php",
 	"core/config/register.php",
+	"core/config/session.php",
 	"core/app_loader.php",
 	"core/router.php",
 	"core/dist/database.php",
@@ -26,6 +27,7 @@ foreach ($basefiles as $intern_file){
 
 
 // Load Configuration And Caches
+Monkey\Session::init();
 Monkey\Config::init();
 Monkey\Register::init();
 
