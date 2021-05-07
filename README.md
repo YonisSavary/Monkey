@@ -18,7 +18,6 @@ don't worry, it is made to be simple !
 
 # Summary
  * Request Lifecycle
- * Request Lifecycle
  * Configuration
  * Register
  * Routing
@@ -98,7 +97,7 @@ and read by the `Monkey\Config` component when `Config::init()` is called,
 here are some functions you may find interesting
 
 
-<pre>
+```php
 // Basics function, you can set and get specifics keys 
 // from your configuration
 
@@ -124,7 +123,7 @@ Config::multiple_exists(["foo", "bar"]);
 
 Config::init();
 $configuration = Config::init(true);
-</pre>
+```
 
 
 Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
@@ -155,19 +154,19 @@ not forgot you and allow you to divide your configuration into multiples files !
 Assuming we have `monkey.json` and we want to create a `dist.json`
 for our connection configuration, one way to do that is to add this in `monkey.json` :
 
-<pre>
+```php
     "extra_config" : "dist.json"
-</pre>
+```
 
 But we can do more ! We can also create this kind of structure to divide a configuration into themed-files
 
-<pre>
-    "extra_config" : [
-        "cfg/dist.json",
-        "cfg/monkey.json",
-        "cfg/auth.json"
-    ]
-</pre>
+```json
+"extra_config" : [
+	"cfg/dist.json",
+	"cfg/monkey.json",
+	"cfg/auth.json"
+]
+```
     
 
     
@@ -179,9 +178,9 @@ Let's assume that we have two directories at the project root, let's call them
 directories, just like they were 2 separated apps.
 You can combine them by setting this in `monkey.json`
 
-<pre>
-    "app_directories" : ["./app_users", "./app_admin"]
-</pre>
+```json
+"app_directories" : ["./app_users", "./app_admin"]
+```
 
 Notes : 
  * Views Directories are shared, one application can access the views of another, 
@@ -208,7 +207,7 @@ the register to store your application's routes
 
 Most of the register functions are similar to the `Monkey\Config` one
 
-<pre>
+```php
 // Set the foo key to the given array and save a .json file
 Register::set("foo", ["bar"=>"blah"])
 
@@ -226,7 +225,7 @@ Register::write("foo")
 // Load the .json files into the register 
 // Note : this function is automatically called by 'init'
 Register::load_files()
-</pre>
+```
 
 
 Note : The directory where the .json files are stored can be edited by changing `register_store`
@@ -263,7 +262,7 @@ A route is defined by 2 mandatory and 3 optionnals properties :
 
 
 Here is an full-example 
-<pre>
+```json
 {
     "path": "/someExample",
     "callback": "ExampleController->someMethod",
@@ -271,7 +270,7 @@ Here is an full-example
     "methods": ["PUT", "POST"] ,
     "middlewares": ["middlewareClass1", "middlewareClass2"]
 }
-</pre>
+```
 
 
 Note : When a route callback is called, a `Monkey\Web\Request` object is given in parameter,
@@ -287,7 +286,7 @@ you can define multiples routes with the same path but with differents allowed m
 
 You can define slugs in your route path : here is an example
 
-<pre>
+```php
 // Assuming your route path is "/person/{firstname}/{lastname}"
 // And your request path is    "/person/dwight/schrute"
 // You can access it by doing it 
@@ -298,7 +297,7 @@ function someName(Request $req)
     $req->slugs["firstname"] // return "dwight"
     $req->slugs["lastname"]  // return "schrute"
 }
-</pre>
+```
     
     
 ## Middlewares
@@ -318,7 +317,7 @@ is called with the current `Monkey\Web\Request` as first parameter, it can eithe
 
 With this feature comes the `Monkey\Router` component, which have theses functions
 
-<pre>
+```php
 // Redirect the current request
 Router::redirect("/somePath");
 
@@ -355,7 +354,7 @@ Router::build_slugs();
 
 // Route the current HTTP request
 Router::route_current();
-</pre>
+```
     
 
 
@@ -392,7 +391,7 @@ There are several keys that need to be edited in `monkey.json` :
 
 The composant to prepare and execute query is `Monkey\DB` :
 
-<pre>
+```php
 // Initialize the component, create a connection and throw 
 // an error if something went wrong
 DB::init();
@@ -415,7 +414,7 @@ DB::execute();
 // (or an empty array)
 // Note: you can specify the fetch mode for PDO
 DB::query(string $query, int $mode=PDO::FETCH_ASSOC);
-</pre>
+```
     
 
 
@@ -457,7 +456,7 @@ Query modes constants are made on a CRUD name system, so :
  * `Query::DELETE` is an `DELETE FROM` query
 
         
-<pre>
+```php
 // Insert values in a table
 $q = new Query("tableName", ["firstname", "name"], Query::CREATE);
 $q->values("big", "chungus");
@@ -480,7 +479,7 @@ $q->exec();
 $q = new Query("tableName", [], Query::DELETE);
 $q->where("firstname", "big")->and()->where("name", "boii");
 $q->exec();
-</pre>
+```
         
 If you don't want to execute the query, you can simply call `build`, to retrieve
 it
@@ -493,8 +492,8 @@ You may have noticed, on the last query, we used the `and` function, this one,
 and the `or` are made to make your query more readable, so you can add multiples
 conditions more easily
 
-<pre>$q->where("firstname", "boo")->or()->where("name", "barrr");
-</pre>
+```php$q->where("firstname", "boo")->or()->where("name", "barrr");
+```
     
     
 ## Models
@@ -505,7 +504,7 @@ the purpose of models is to have a structural copy of your tables
 **
 
 Here is an example of model :
-<pre>
+```php
 &lt;?php
 
 namespace Models;
@@ -518,7 +517,7 @@ class Users extends Model {
     public $id;
     public $name;
 }
-</pre>
+```
 
 The structure is simple, every public fields of your class defines your model fields,
 and the others are used in it internal process.
@@ -526,13 +525,13 @@ and the others are used in it internal process.
 
 The abstract class `Monkey\Model` has a few functions linked to the `Monkey\Query` ones :
 
-<pre>$modelObject = new User();
+```php$modelObject = new User();
 $modelObject->get("id", "name");
 $modelObject->getAll();
 $modelObject->update();
 $modelObject->insert();
 $modelObject->delete_from();
-</pre>
+```
 
 **Note : `delete_from` build a query to delete from a table, the `delete` method 
 delete an object following it primary key**
@@ -599,10 +598,10 @@ Monkey has one class that may help you to do render PHP templates
 Assuming that we created a file named `app/views/home.php`, we can 
 render it by calling :
 
-<pre>
+```php
 use Monkey\Web\Renderer;
 Renderer::render("home");
-</pre>
+```
         
 This function act in a recursive way, so you can move your templates
 into subfolders it won't be a problem
@@ -614,7 +613,7 @@ into subfolders it won't be a problem
 Depsite PHP being a template engine, we added some functions to help you out 
 while making your templates
 
-<pre>
+```php
 // Add your app url prefix to the first parameter
 // "app_prefix" in monkey.json
 
@@ -630,18 +629,18 @@ while making your templates
 // has a name, if no route was found, "/loginPage" would be return in this example
 
 &lt;?=php router("loginPage") ?>
-</pre>
+```
     
     
 ## Passing Variables to Renderer
 There is a quick way to pass variables to the `Renderer` class
-<pre>
+```php
 Renderer::render("home", ["app-name"=>"MonkeyExample"]);
-</pre>
+```
 You can access `app-name` with this instruction
-<pre>
+```php
 &lt;?= $vars["app-name"] ?> // Will display "MonkeyExample"
-</pre>
+```
     
 
 
@@ -681,7 +680,7 @@ your `monkey.json` file :
 
 `Auth` usage is meant to be simple 
 
-<pre>
+```php
 use Monkey\Services\Auth;
 
 // Can create a new password (BCRYPT with a cost of 8 by default)
@@ -706,7 +705,7 @@ Auth::is_logged();
 
 // Get the Model object stored in the SESSION
 Auth::get_user();
-</pre>
+```
     
     
 ## Token
@@ -714,14 +713,14 @@ Auth::get_user();
 When a user is logged, a 64-random-characters string is created in the session, 
 and can be recovered with
 
-<pre>
+```php
 use Monkey\Services\Auth;
 Auth::token();
 
 // Can give : 272143223ac0bd8a2448e2c0bf7143e0f1580a9f3e23823c80df2e3a4423f5b4
 // for example
 
-</pre>
+```
 
 ## Middleware 
 
