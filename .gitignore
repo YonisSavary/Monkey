@@ -2,3 +2,7 @@
 monkey.json
 vendor
 config/*.json
+.phpunit.result.cache
+
+composer.json
+composer.lock

@@ -39,17 +39,17 @@ class Auth
         if (Config::get("auth_enabled") !== true) return null;
 
         $model_name = "Models\\".Config::get("auth_model");
-        if (!class_exists($model_name)) Trash::fatal("$model_name Model does not exists !");
+        if (!class_exists($model_name)) Trash::fatal("$model_name Model does not exists !", true);
 
         $model = new $model_name();
         $parser = new ModelParser($model_name);
         $fields = $parser->get_model_fields();
 
         $login_field = Config::get("auth_login_field");
-        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $login_field public field");
+        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $login_field public field", true);
 
         $pass_field = Config::get("auth_pass_field");
-        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $pass_field public field");
+        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $pass_field public field", true);
 
         self::$model = $model;
         self::$login_field = $login_field;

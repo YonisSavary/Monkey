@@ -20,15 +20,18 @@ class Trash
         self::$error_callbacks[$error] = $callback;
     }
 
-    public static function send(string $error, $arg=null){
-        if (isset(self::$error_callbacks[$error])){
+    public static function send(string $error, $arg=null): Response
+	{
+        if (isset(self::$error_callbacks[$error]))
+		{
             $callback = self::$error_callbacks[$error];
-            if (is_string($callback)){
-                Router::execute_route_callback($callback, $arg);
+            if (is_string($callback))
+			{
+                return Router::execute_route_callback($callback, $arg);
             } 
             else
             {
-                $callback($arg);
+                return $callback($arg);
             }
         }
     }
@@ -38,9 +41,15 @@ class Trash
      * 
      * @param string $message Message to display
      */
-    public static function fatal(string $message): void
+    public static function fatal(string $message, bool $force_display=false): Response
     {
-        self::send("fatal", $message);
+        $res = self::send("fatal", $message);
+		if ($force_display)
+		{
+			$res->reveal();
+			die();
+		}
+		return $res;
     }
 }
 
@@ -48,18 +57,24 @@ class Trash
 
 
 
-Trash::on("fatal", function (string $message){
-    if (Config::get("safe_error_display", false) !== true){
+Trash::on("fatal", function (string $message): Response
+{
+    if (Config::get("safe_error_display", false) !== true)
+	{
         $message = "Fatal Error In Monkey : $message";
     } 
     $message = "<h1>Error 500</h1> $message";
-    echo $message;
-    die();
+
+    return Response::html($message);
 });
 
-Trash::on("404", function ($request_path){
-    echo "<h1>Error 404</h1>Page Not found !<br>" ;
-    if (Config::get("safe_error_display", false) !== true){
-        echo "\"".$request_path."\" route not found";
+Trash::on("404", function ($request_path) : Response
+{
+    $message = "<h1>Error 404</h1>Page Not found !<br>" ;
+    if (Config::get("safe_error_display", false) !== true)
+	{
+        $message .= "\"".$request_path."\" route not found";
     }     
+
+	return Response::html($message);
 });

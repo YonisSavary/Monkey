@@ -21,7 +21,7 @@ class Session {
 	 */
 	public static function init(int $lifetime=7200){
 		self::$initialized = true;
-		session_start(['cookie_lifetime' => $lifetime]);
+		if (session_status() !== PHP_SESSION_ACTIVE) session_start(['cookie_lifetime' => $lifetime]);
 	}
 
 

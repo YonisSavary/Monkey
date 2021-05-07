@@ -41,9 +41,9 @@ class Response
      * Show the content of the `Response`
      * with the appropriate header
      */
-    public function reveal() : void 
+    public function reveal(bool $skip_header=false) : void 
     {
-        header($this->header);
+        if (!$skip_header) header($this->header);
         echo $this->content;
     }
 

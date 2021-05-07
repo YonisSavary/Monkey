@@ -50,18 +50,6 @@ abstract class Model
     }
 
 
-    /**
-     * Get the class name, not the most useful thing, but 
-     * pretty useful when creating a ModelParser
-     * 
-     * @deprecated
-     */
-    public function get_class() : string
-    {
-        return $this->class;
-    }
-
-
     public static function get_fields(array|string $ignores=[]): array 
     {
         if (!is_array($ignores)) $ignores = [$ignores];
@@ -77,7 +65,7 @@ abstract class Model
      */
     public function __construct()
     {
-        if (is_null($this->table)) Trash::fatal("No 'protected \$table' defined for model " . $this->class);
+        if (is_null($this->table)) Trash::fatal("No 'protected \$table' defined for model " . $this->class, true);
 
         // This line makes the primary_key a mandatory property
         //if (is_null($this->primary_key)) Trash::fatal("No 'protected \$primary_key' defined for model " . $this->class);
@@ -97,6 +85,11 @@ abstract class Model
         $this->unparsed[$key] = $value;
     }
 
+
+	public function get_unparsed() : array 
+	{
+		return $this->unparsed;
+	}
 
     /**
      * Query Building: I had some problem with these.
@@ -167,7 +160,7 @@ abstract class Model
     public function delete(): void
     {
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
+        if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field", true);
         $this->delete_from()->where($primary, $this->$primary)->execute();
     }
 
@@ -181,8 +174,8 @@ abstract class Model
     {
         $fields = $this->parser->get_model_fields();
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::fatal('Object has no $primary field');
-        if ($this->primary_key === "") Trash::fatal($this::class . " has no \$primary_key defined !");
+        if (!isset($this->$primary)) Trash::fatal('Object has no $primary field', true);
+        if ($this->primary_key === "") Trash::fatal($this::class . " has no \$primary_key defined !", true);
         $fields_str = [];
         foreach ($fields as $f)
         {
@@ -232,6 +225,7 @@ abstract class Model
         $new_object = new $model_name();
         $model_fields = $model_name::get_fields();
 
+
         if ( array_keys($data) !== range(0, count($data) - 1) ) 
 		{
             // Is array associative ?
@@ -244,7 +238,7 @@ abstract class Model
             }
             return $new_object;
         } 
-		else if ( count($model_fields) !== count($data) )
+		else if ( count($model_fields) === count($data) )
 		{
             // Non-associative array, is the array the same size 
             // as the declared model fields

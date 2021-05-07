@@ -12,18 +12,39 @@ class DB {
     static $configuration = [];
     static $last_insert_id = null;
 
+	static $force_fetch_all = false;
+
 	static $fetch_mode = PDO::FETCH_ASSOC;
+
+
+    /**
+     * Initialize the DB service if `db_enabled` is set to `true`
+     * Create a PDO connection a store it in `self::$connection`
+     * 
+     * @return bool Was the connection successful ?
+     */
+    public static function init(string $custom_dsn=null, bool $force_init=true) : bool
+    {
+        if (Config::get("db_enabled") !== true && !$force_init) return false;
+        self::load_configuration();
+	    self::$connection = self::get_connection(self::$configuration["user"], self::$configuration["pass"], $custom_dsn);
+
+        return true;
+    }
+
 
     /**
      * Called function as another function of `DB` is called,
      * basically is you try to call `query` but your connection
      * isn't established, then an error message will appear
      */
-    public static function check_connection() : void
+    public static function check_connection() : bool
     {
         if (self::$connection === null){
-			Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(");
+			Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(", true);
+			return false;
 		} 
+		return true;
     }
 
 
@@ -52,26 +73,11 @@ class DB {
 		{
 			$dsn .= "host=".$conf["host"].";";
 			$dsn .= "port=".$conf["port"].";";
-			$dsn .= "dbname=".$conf["name"].";";
+			$dsn .= "dbname=".$conf["name"];
 		}
         return $dsn;
     }
 
-
-    /**
-     * Initialize the DB service if `db_enabled` is set to `true`
-     * Create a PDO connection a store it in `self::$connection`
-     * 
-     * @return bool Was the connection successful ?
-     */
-    public static function init() : bool
-    {
-        if (Config::get("db_enabled") !== true) return false;
-        self::load_configuration();
-	    self::$connection = self::get_connection(self::$configuration["user"], self::$configuration["pass"]);
-
-        return true;
-    }
 
 
     public static function get_connection(string $user, string $password, string $custom_dsn=null) : PDO
@@ -83,7 +89,7 @@ class DB {
         } 
         catch (PDOException $e)
         {
-            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) <br>PDO Exception : ". $e->getMessage());
+            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) <br>PDO Exception : ". $e->getMessage(), true);
         }
         return $connection;
     }
@@ -93,6 +99,7 @@ class DB {
      * Link to PDO::prepare function
      * 
      * @param string $request Request with bindings
+	 * @deprecated
      */
     public static function prepare(string $request) : void
     {
@@ -106,6 +113,7 @@ class DB {
      * 
      * @param string $bind Bind Name
      * @param mixed $value Bind value
+	 * @deprecated
      */
     public static function bind(string $bind, mixed $value) : void
     {
@@ -117,6 +125,8 @@ class DB {
     /**
      * Execute the PDO prepared request and return the results
      * or an empty array
+	 * 
+	 * @deprecated
      */
     public static function execute() : array
     {
@@ -145,12 +155,14 @@ class DB {
     public static function query(string $query, mixed ...$params) : array
     {
         self::check_connection();
-		$query = self::quick_prepare($query, ...$params);
-
+		if (count($params) > 0){
+			$query = self::quick_prepare($query, ...$params);
+		}
+	
         $statement = self::$connection->query($query);
         self::$last_insert_id = self::$connection->lastInsertId() ?? null;
 
-        if ($statement->rowCount() > 0)
+        if ($statement->rowCount() > 0 || self::$force_fetch_all)
         {
             return $statement->fetchAll(self::$fetch_mode);
         }

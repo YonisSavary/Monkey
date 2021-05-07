@@ -89,7 +89,7 @@ class Query
                 $this->get_results = false;
                 break;
             default:
-                Trash::fatal("Bad Query Mode !");
+                Trash::fatal("Bad Query Mode !", true);
                 break;
         }
         return $this;
@@ -338,7 +338,7 @@ class Query
                 return $this->build_delete();
                 break;
             default:
-                Trash::fatal("Bad Query Mode !");
+                Trash::fatal("Bad Query Mode !", true);
                 break;
         }
     }

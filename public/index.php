@@ -8,9 +8,10 @@ use Monkey\Web\Response;
  * Load Monkey and it components
  * but also load vendor.php if existants
  * 
- * Also, monkey.php change the directory to the project directory
+ * Also, we change the directory to the project directory
  */
-require_once "../core/monkey.php";
+chdir("..");
+require_once "core/monkey.php";
 
 
 

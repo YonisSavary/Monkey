@@ -1,7 +1,5 @@
 <?php 
 
-chdir("..");
-
 $basefiles = [
 	"core/web/web.php",
 	"core/web/renderer.php",

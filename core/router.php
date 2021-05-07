@@ -218,10 +218,10 @@ class Router
         $method = $callback_parts[1];
 
         // Create the controller and execute the route callback
-        if (!class_exists($controller_class)) Trash::fatal("$controller_class does not exists !");
+        if (!class_exists($controller_class)) return Trash::fatal("$controller_class does not exists !");
         $controller = new $controller_class();
 
-        if (!method_exists($controller, $method)) Trash::fatal("$method method does not exists !");
+        if (!method_exists($controller, $method)) return Trash::fatal("$method method does not exists !");
         return $controller->$method( $custom_args ?? Request::current());
     }
 
@@ -236,10 +236,10 @@ class Router
 		if (is_callable($middleware_name)) return $middleware_name(Request::$current);
 	
 		$middleware_name = "Middlewares\\".$middleware_name;
-		if (!class_exists($middleware_name)) Trash::fatal("$middleware_name does not exists!");
+		if (!class_exists($middleware_name)) return Trash::fatal("$middleware_name does not exists!");
 
 		$middleware = new $middleware_name();
-		if (!method_exists($middleware, "handle")) Trash::fatal("$middleware_name does not have a 'handle' function");
+		if (!method_exists($middleware, "handle")) return Trash::fatal("$middleware_name does not have a 'handle' function");
 		
 		return $middleware->handle(Request::current());
 	}
@@ -252,10 +252,10 @@ class Router
      * 3. create a `Request` object
      * 4. call a route callback if existing, with the `Request` object as an argument
      */
-    public static function route_current() : void
+    public static function route_current(bool $return_response=false, Request $forced_request=null) : mixed
     {
         $routes_all = array_merge(self::$list, self::$temp);
-		$req = Request::build();
+		$req = $forced_request ?? Request::build();
 
         foreach($routes_all as $route)
         {
@@ -279,6 +279,7 @@ class Router
 			}
 
 			$response = self::execute_route_callback($route->callback);
+			if ($return_response) return $response;
             self::display_if_response($response);
 			
             die();

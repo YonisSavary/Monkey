@@ -51,7 +51,7 @@ class Renderer
      */
     public static function find(string $template_name) : mixed
     {
-        foreach (Config::get("views-directory") as $dir)
+        foreach (Config::get("views-directory", []) as $dir)
         {
 			$in_dir = (strpos($template_name, "/") !== false);
             $result = self::find_recursive($dir, $template_name, $in_dir);
@@ -71,7 +71,7 @@ class Renderer
     {
         $GLOBALS["render"] = $vars;
         $path = self::find($template_name);
-        if ($path === null) Trash::fatal($template_name . " template does not exists !");
+        if ($path === null) return Trash::fatal($template_name . " template does not exists !");
         ob_start();
         require_once $path;
         $content = ob_get_clean();

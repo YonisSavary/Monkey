@@ -33,7 +33,7 @@ class Config
 
         $last_error = json_last_error();
         if ($last_error !== JSON_ERROR_NONE){
-            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !");
+            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !", true);
         }
 
         foreach ($content as $key => $value){
@@ -64,8 +64,13 @@ class Config
      * @param string $key Key name to check
      * @return bool Do the given key exists
      */
-    public static function exists(string $key) : bool
+    public static function exists(string|array $key) : bool
     {
+		if (is_array($key)){
+			$exists = true;
+			foreach ($key as $k) $exists &= self::exists($k);
+			return $exists;
+		}
         return isset($GLOBALS["monkey"]["config"][$key]);
     }
 
@@ -75,6 +80,8 @@ class Config
      * 
      * @param array $keys Keys list to check
      * @return bool Do the given keys exists at the same time ?
+	 * 
+	 * @deprecated Config::exists Can now take arrays !
      */
     public static function multiple_exists(array $keys) : bool
     {

@@ -2,6 +2,7 @@
 
 namespace Monkey\Web;
 
+use Exception;
 use Monkey\Router;
 
 /**
@@ -31,13 +32,15 @@ class Request
     public $post;
     public $files;
 
+	public $errors = [];
+
 	public static $current = null;
 
 
     // In case you want to store more informations
     public $storage = [];
 
-    public function __construct()
+    public function __construct(string $path=null, string $method=null)
     {
 		$this->request 	= $_REQUEST;
 		$this->session 	= $_SESSION;
@@ -45,10 +48,13 @@ class Request
         $this->post 	= $_POST;
         $this->files 	= $_FILES;
 		$this->cookie 	= $_COOKIE;
+
+		$this->path = $path;
+		$this->method = $method;
     }
 
 
-	public static function current() : Request 
+	public static function current() : Request|null
 	{
 		return self::$current;
 	}
@@ -57,8 +63,15 @@ class Request
 	public static function build() : Request 
 	{
 		$req = new Request();
-		$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
-		$req->method = $_SERVER["REQUEST_METHOD"];
+		try 
+		{
+			$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
+			$req->method = $_SERVER["REQUEST_METHOD"];
+		} catch (Exception $e){
+			$req->path = null;
+			$req->method = null;
+			array_push($req->errors, $e->getMessage());
+		}
 
 		return $req;
 	}
