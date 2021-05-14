@@ -393,8 +393,8 @@ DB::execute();
 
 // Execute the prepared query and return the results 
 // (or an empty array)
-// Note: you can specify the fetch mode for PDO
-DB::query(string $query, int $mode=PDO::FETCH_ASSOC);
+// Note: you can give parameters to your query 
+DB::query(string $query, ...$param);
 
 // Get a new PDO object (using the configuration DSN by default)
 DB::get_connection("admin", "pass");
@@ -406,7 +406,10 @@ DB::get_connection("admin", "pass", "mysql:host=127.0.0.1;dbname=somedb");
 // your configuration file
 DB::get_dsn(); 
 
-DB::quick_prepare();
+// Home-made function to prepare a query, it return a string
+// but does not execute it directly
+DB::quick_prepare("INSERT INTO ... VALUES ({}, {}, '{}')", [5, 'foo', 'bar']);
+// <= INSERT INTO ... VALUES (5, 'foo', 'foo')
 ```
     
 
