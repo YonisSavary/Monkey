@@ -1,7 +1,8 @@
 <?php 
 
-namespace Monkey;
+namespace Monkey\Framework;
 
+use Monkey\Storage\Register;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
@@ -276,6 +277,7 @@ class Router
 			{
 				$res = self::execute_middleware($middleware_name);
 				self::display_if_response($res);
+                if ($res instanceof Request) Request::$current = $res;
 			}
 
 			$response = self::execute_route_callback($route->callback);

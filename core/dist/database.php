@@ -2,7 +2,7 @@
 
 namespace Monkey\Dist;
 
-use Monkey\Config;
+use Monkey\Storage\Config;
 use Monkey\Web\Trash;
 use PDO;
 use PDOException;
@@ -23,7 +23,7 @@ class DB {
      * 
      * @return bool Was the connection successful ?
      */
-    public static function init(string $custom_dsn=null, bool $force_init=true) : bool
+    public static function init(string $custom_dsn=null, bool $force_init=false) : bool
     {
         if (Config::get("db_enabled") !== true && !$force_init) return false;
         self::load_configuration();

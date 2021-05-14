@@ -1,6 +1,6 @@
 <?php
 
-use Monkey\Session;
+use Monkey\Storage\Session;
 use PHPUnit\Framework\TestCase;
 
 class sessionTest extends TestCase

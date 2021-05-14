@@ -1,6 +1,9 @@
 <?php 
 
-namespace Monkey;
+namespace Monkey\Framework;
+
+use Monkey\Storage\Config;
+use Monkey\Storage\Register;
 
 /**
  * This class can load "applications", an application is made of 

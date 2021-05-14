@@ -1,6 +1,6 @@
 <?php
 
-use Monkey\Config;
+use Monkey\Storage\Config;
 use Monkey\Router;
 use Monkey\Web\Renderer;
 use Monkey\Web\Response;

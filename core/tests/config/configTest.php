@@ -1,6 +1,6 @@
 <?php
 
-use Monkey\Config;
+use Monkey\Storage\Config;
 use PHPUnit\Framework\TestCase;
 
 class configTest extends TestCase

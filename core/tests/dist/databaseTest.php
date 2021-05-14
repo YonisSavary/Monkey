@@ -1,6 +1,6 @@
 <?php
 
-use Monkey\Config;
+use Monkey\Storage\Config;
 use Monkey\Dist\DB;
 use PHPUnit\Framework\TestCase;
 

@@ -1,6 +1,6 @@
 <?php 
 
-namespace Monkey;
+namespace Monkey\Storage;
 
 /**
  * Register store object into files, it store essentials data

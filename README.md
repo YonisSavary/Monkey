@@ -59,7 +59,7 @@ Here are the differents namespaces you may see/use, I won't explain the explicit
 | Models\ | |
 | Controllers\ | |
 | Middlewares\ | |
-| Monkey\ | The main Monkey components with no specifics fields  | 
+| Monkey\Framework | Some internal components for Monkey (like the `Router`, `AppLoader`...)  | 
 | Monkey\Services\ | So far, only the `Auth` component is in this namespace | 
 | Monkey\Web\ | Everything that touch to the Http Requests/Responses | 
 | Monkey\Dist\ | `DB` and `Query` components | 
@@ -93,22 +93,21 @@ Here is how a request is processed by Monkey :
 ## How to configure Monkey ?
 
 The framework configuration is stored in `monkey.json`
-and read by the `Monkey\Config` component when `Config::init()` is called,
+and read by the `Monkey\Storage\Config` component when `Config::init()` is called,
 here are some functions you may find interesting
 
 
 ```php
+// Read a file and put its content into the configuration
+Config::read_file("someConfig.json"):
+
 // Basics function, you can set and get specifics keys 
 // from your configuration
 
 Config::set("foo", "no");
-Config::get("foo"); // no
 
-// Save the current configuration in monkey.json
-// You can define which key needs to be excluded
-
-Config::save();
-Config::save(["foo", "bar"])
+Config::get("foo"); // no default value
+Config::get("foo", "toto"); // "toto" if the "foo" key doesn't exists
 
 // How to check if a key is present in your configuration
 // You can also check for multiples keys
@@ -131,9 +130,9 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 ## List of all configurable framework keys
 |Key Name | Purpose | Default (if any) |
 |---------|---------|------------------|
-| `register_store` | Directory where `Monkey\Register` store its files | "./config" |
+| `register_store` | Directory where `Monkey\Storage\Register` store its files | "./config" |
 | `app_directories` | Directory where Monkey look for app files | "./app" |
-| `cached_apploader` | Does the apploader cache its directories with `Monkey\Register` not advised in dev environment (can save you some times) | false |
+| `cached_apploader` | Does the apploader cache its directories with `Monkey\Storage\Register` not advised in dev environment (can save you some times) | false |
 | `db_enabled` | Do Monkey create a connection to a database ? | false |
 | `db_driver` | Driver used by PDO |  |
 | `db_host` | Host of the database |  |
@@ -148,25 +147,12 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 
 ## Organize your configuration !
 
-One of the norms for web devs is to have a file named `dist.json`, Monkey did 
-not forgot you and allow you to divide your configuration into multiples files ! 
+If you want to separate your configuration, you can create
+a file named `monkey.json` in your **application folder** 
 
-Assuming we have `monkey.json` and we want to create a `dist.json`
-for our connection configuration, one way to do that is to add this in `monkey.json` :
-
-```php
-    "extra_config" : "dist.json"
-```
-
-But we can do more ! We can also create this kind of structure to divide a configuration into themed-files
-
-```json
-"extra_config" : [
-	"cfg/dist.json",
-	"cfg/monkey.json",
-	"cfg/auth.json"
-]
-```
+By default, you can create a file as `./app/monkey.json` it will 
+be read by the `AppLoader` component and treated as more important
+than the global configuration file
     
 
     
@@ -176,7 +162,8 @@ Monkey Allow you to have multiples MVC applications connected to the framework !
 Let's assume that we have two directories at the project root, let's call them 
 `app_users` and `app_admin`, both of them have theirs MVC 
 directories, just like they were 2 separated apps.
-You can combine them by setting this in `monkey.json`
+
+You can combine them by editing `app_directories` in `monkey.json`
 
 ```json
 "app_directories" : ["./app_users", "./app_admin"]
@@ -184,7 +171,7 @@ You can combine them by setting this in `monkey.json`
 
 Notes : 
  * Views Directories are shared, one application can access the views of another, 
- so be aware when naming your views
+ **be aware when naming your views !**
  * Change may not be visible at first, be sure to refresh your cache by either setting `cached_apploader` 
  to `false` in `monkey.json`, or by deleting `config/apploader.json` if you do not want to disable it
     
@@ -205,7 +192,7 @@ The Monkey register is here to store your data and retrieve it quickly, to summa
 it's an interface with JSON objects stored in files, for example : Monkey use 
 the register to store your application's routes
 
-Most of the register functions are similar to the `Monkey\Config` one
+Most of the register functions are similar to the `Monkey\Storage\Config` one
 
 ```php
 // Set the foo key to the given array and save a .json file
@@ -321,9 +308,6 @@ With this feature comes the `Monkey\Router` component, which have theses functio
 // Redirect the current request
 Router::redirect("/somePath");
 
-// Save the currents routes with the Register
-Router::save();
-
 // Initialize the component
 // Read the routes in the registers
 // And add the admin interface routes if the feature is enabled
@@ -338,9 +322,6 @@ Router::get_route();
 
 // Add a temporary route, which is not saved 
 // in the register
-Router::add();
-
-// Add a route and save it
 Router::add();
 
 // Remove a route, by its name or path
@@ -414,6 +395,18 @@ DB::execute();
 // (or an empty array)
 // Note: you can specify the fetch mode for PDO
 DB::query(string $query, int $mode=PDO::FETCH_ASSOC);
+
+// Get a new PDO object (using the configuration DSN by default)
+DB::get_connection("admin", "pass");
+// You can define a custom dsn if you want to, 
+// Which is equivalent to directly creating a PDO Object
+DB::get_connection("admin", "pass", "mysql:host=127.0.0.1;dbname=somedb");
+
+// Get a DSN connection string built from 
+// your configuration file
+DB::get_dsn(); 
+
+DB::quick_prepare();
 ```
     
 
@@ -527,7 +520,7 @@ The abstract class `Monkey\Model` has a few functions linked to the `Monkey\Quer
 
 ```php$modelObject = new User();
 $modelObject->get("id", "name");
-$modelObject->getAll();
+$modelObject->get_all();
 $modelObject->update();
 $modelObject->insert();
 $modelObject->delete_from();
@@ -722,8 +715,21 @@ Auth::token();
 
 ```
 
+
+
+
+
+
 ## Middleware 
 
 By default, Monkey includes a little middleware that you can use/edit/delete, it 
 is stored in `app/middlewares` and reject to another path every unauthenticated client 
 on a route
+
+A middleware is a class that is in the `\Middlewares` namespace, and have a `handle` function
+which can take a `Request` object as first parameter, and can either return an edited request 
+or a `Response` object (if a response is return, its content it directly displayed and the 
+request killed)
+
+Also, if you want to have a cleaner code, you can use the `\Monkey\Framework\Middleware`
+interface, it force you to make the right function

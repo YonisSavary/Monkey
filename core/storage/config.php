@@ -1,6 +1,6 @@
 <?php 
 
-namespace Monkey;
+namespace Monkey\Storage;
 
 use Monkey\Web\Trash;
 
@@ -124,6 +124,9 @@ class Config
     public static function init()
     {
         $GLOBALS["monkey"]["config"] = [];
-        self::read_file("./monkey.json");
+        $read = self::read_file("./monkey.json");
+        if ($read === false){
+            Trash::fatal("monkey.json does not exists !", true);
+        }
     }
 }

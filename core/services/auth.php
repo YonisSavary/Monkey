@@ -3,7 +3,7 @@
 namespace Monkey\Services;
 
 use Kernel\Model\ModelParser;
-use Monkey\Config;
+use Monkey\Storage\Config;
 use Monkey\Web\Trash;
 
 

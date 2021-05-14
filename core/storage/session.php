@@ -1,6 +1,6 @@
 <?php 
 
-namespace Monkey;
+namespace Monkey\Storage;
 
 class Session {
 	static $initialized = false;

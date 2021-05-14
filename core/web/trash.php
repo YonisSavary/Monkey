@@ -2,7 +2,7 @@
 
 namespace Monkey\Web;
 
-use Monkey\Config;
+use Monkey\Storage\Config;
 use Monkey\Router;
 
 /**

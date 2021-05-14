@@ -1,21 +1,28 @@
 <?php 
 
 $basefiles = [
+	"core/framework/router.php",
+	"core/framework/app_loader.php",
+	"core/framework/middlewares.php",
+
 	"core/web/web.php",
 	"core/web/renderer.php",
 	"core/web/request.php",
 	"core/web/response.php",
 	"core/web/trash.php",
-	"core/config/config.php",
-	"core/config/register.php",
-	"core/config/session.php",
-	"core/app_loader.php",
-	"core/router.php",
+
+	"core/storage/config.php",
+	"core/storage/register.php",
+	"core/storage/session.php",
+
 	"core/dist/database.php",
 	"core/dist/query.php",
+
 	"core/models/model.php",
 	"core/models/model_parser.php",
+
 	"core/services/auth.php",
+	
 	"vendor/autoload.php"
 ];
 
@@ -25,14 +32,14 @@ foreach ($basefiles as $intern_file){
 
 
 // Load Configuration And Caches
-Monkey\Session::init();
-Monkey\Config::init();
-Monkey\Register::init();
+Monkey\Storage\Session::init();
+Monkey\Storage\Config::init();
+Monkey\Storage\Register::init();
 
 // Load Applications
-Monkey\AppLoader::init();
+Monkey\Framework\AppLoader::init();
 
-Monkey\Router::init();
+Monkey\Framework\Router::init();
 
 // Services
 Monkey\Dist\DB::init();
