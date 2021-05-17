@@ -10,8 +10,47 @@ use stdClass;
 
 class Router 
 {
+    public static $enabled_groups = [];
     public static $list = []; // Current routes list
     public static $temp = []; // Not saved routes, used in `route_current` function
+
+
+    /**
+     * Enable a global middleware 
+     * that will be put on every added routes
+     * until it is disabled
+     */
+    public static function start_group(string|array $names)
+    {
+        if (is_array($names))
+        {
+            foreach ($names as $n) 
+            {
+                self::start_group($n);
+            }
+        }
+        else 
+        {
+            array_push(self::$enabled_groups, $names);
+        }
+    }
+
+
+    public static function end_group(string|array $names)
+    {
+        if (!is_array($names)) $names = [$names];
+        self::$enabled_groups = array_diff(self::$enabled_groups, $names);
+    }
+
+    public static function end_all_groups()
+    {
+        self::$enabled_groups = [];
+    }
+
+    public static function get_groups()
+    {
+        return self::$enabled_groups;
+    }
 
 
     /**
@@ -102,6 +141,7 @@ class Router
      */
     public static function add(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
+        $middlewares = array_merge($middlewares, self::$enabled_groups);
         $new_routes = self::get_route($path, $callback, $name, $middlewares, $methods);
         array_push(self::$temp, $new_routes);
     }
@@ -215,7 +255,8 @@ class Router
 		if (is_callable($to_execute)) return $to_execute(Request::current());
         // Discompose the `callback` attribute
         $callback_parts = explode("->", $to_execute);
-        $controller_class = "Controllers\\".$callback_parts[0];
+        $controller_class = $callback_parts[0];
+        if (!class_exists($controller_class)) $controller_class = "Controllers\\".$controller_class;
         $method = $callback_parts[1];
 
         // Create the controller and execute the route callback
@@ -236,7 +277,7 @@ class Router
 	{
 		if (is_callable($middleware_name)) return $middleware_name(Request::$current);
 	
-		$middleware_name = "Middlewares\\".$middleware_name;
+        if (!class_exists($middleware_name)) $middleware_name = "Controllers\\".$middleware_name;
 		if (!class_exists($middleware_name)) return Trash::fatal("$middleware_name does not exists!");
 
 		$middleware = new $middleware_name();

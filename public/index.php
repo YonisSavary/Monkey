@@ -1,5 +1,6 @@
 <?php
 
+use Middlewares\LeTest;
 use Monkey\Framework\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
