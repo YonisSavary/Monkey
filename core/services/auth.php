@@ -83,10 +83,15 @@ class Auth
      */
     public static function check(string|int $login, string $password) : bool
     {
-        $user = self::$model_name::get(self::$model->get_primary_key(), self::$login_field, self::$pass_field)->where(self::$login_field, $login)->limit(1)->execute();
+        $user = self::$model_name::get_all()->where(self::$login_field, $login)->limit(1)->execute();
         if (count($user) === 0) return false;
         $user = $user[0];
         $pfield = self::$pass_field;
+        
+        $salt_field = Config::get("auth_salt_field");
+        if ( (!is_null($salt_field)) &&  isset($user->$salt_field)){
+            $password .= $user->$salt_field;
+        }
         return password_verify($password, $user->$pfield);
     }
 

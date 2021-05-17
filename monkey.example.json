@@ -17,6 +17,7 @@
 	"auth_model" : "Users",
 	"auth_login_field" : "login",
 	"auth_pass_field" : "pass",
+	"auth_salt_field": null,
 
 	"safe_error_display" : false
 }

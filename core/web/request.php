@@ -86,7 +86,7 @@ class Request
      * @param array|string $keys Keys to retrieve
      * @param int $mode self::[AUTO,GET,POST]
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
-     * @return array Values from the request data
+     * @return mixed Values from the request data
      */
     public function retrieve(array|string $keys, int $mode=self::AUTO, bool $secure=true) : mixed
     {

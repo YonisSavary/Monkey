@@ -179,6 +179,7 @@ class Query
      */
     public function where(string $field, mixed $value, string $comparator="=") : Query
     {
+		$this->clean_data($value);
 		return $this->rawWhere(" `$field` $comparator $value ");
     }
 
@@ -189,7 +190,6 @@ class Query
 	 * @param string $condition condition to add
 	 */
 	public function rawWhere(string $condition) : Query {
-		$this->clean_data($value);
         array_push($this->where, $condition);
         return $this;
 	}
@@ -240,6 +240,7 @@ class Query
         if (count($this->order) > 0){
             return " ORDER BY ". join(", ", $this->order);
         }
+        return "";
     }
 
 

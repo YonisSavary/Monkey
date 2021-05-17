@@ -253,7 +253,7 @@ class Router
      * 3. create a `Request` object
      * 4. call a route callback if existing, with the `Request` object as an argument
      */
-    public static function route_current(bool $return_response=false, Request $forced_request=null) : mixed
+    public static function route_current(bool $return_response=false, Request $forced_request=null)
     {
         $routes_all = array_merge(self::$list, self::$temp);
 		$req = $forced_request ?? Request::build();
