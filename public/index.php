@@ -17,7 +17,7 @@ require_once "core/monkey.php";
 
 /**
  * If your application contains only a few
- * routes, you can add them here with Monkey\Router::add()
+ * routes, you can add them here with Monkey\Framework\Router::add()
  * (don't forget 'add()' has a permanent effect !)
  */
 
@@ -31,7 +31,7 @@ Router::add("/", function(Request $req){
 
 
 /**
- * As this function is called, Monkey\Router
+ * As this function is called, Monkey\Framework\Router
  * look into the Request and begin it lifecycle
  */
 Router::route_current();

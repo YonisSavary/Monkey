@@ -1,6 +1,6 @@
 <?php
 
-use Monkey\Router;
+use Monkey\Framework\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use PHPUnit\Framework\TestCase;

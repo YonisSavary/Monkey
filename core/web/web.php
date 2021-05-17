@@ -1,7 +1,7 @@
 <?php
 
 use Monkey\Storage\Config;
-use Monkey\Router;
+use Monkey\Framework\Router;
 use Monkey\Web\Renderer;
 use Monkey\Web\Response;
 
@@ -14,7 +14,7 @@ function url(string $file) : string
 }
 
 
-function include_file(string $template_name) : Response
+function include_file(string $template_name)
 {
     if (!isset($GLOBALS["render"])) $GLOBALS["render"] = [];
     return Renderer::render($template_name, $GLOBALS["render"], true);

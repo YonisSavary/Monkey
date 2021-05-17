@@ -3,7 +3,7 @@
 namespace Monkey\Web;
 
 use Exception;
-use Monkey\Router;
+use Monkey\Framework\Router;
 
 /**
  * This class has no other purpose than store

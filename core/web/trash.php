@@ -3,7 +3,7 @@
 namespace Monkey\Web;
 
 use Monkey\Storage\Config;
-use Monkey\Router;
+use Monkey\Framework\Router;
 
 /**
  * This class is here to handle errors,

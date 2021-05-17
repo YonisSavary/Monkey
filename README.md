@@ -77,7 +77,7 @@ Here is how a request is processed by Monkey :
 
  1. A Request comes to `index.php`
  2. `index.php` initialize Monkey components and call the router
- 3. `Monkey\Router` go through all your routes and compare the request path
+ 3. `Monkey\Framework\Router` go through all your routes and compare the request path
  4. If found, the middlewares and callback are called with a `Monkey\Web\Request` object argument, If not found : `Trash` is called to display an error
  5. If the callback return a `Response` object, its content is displayed
 
@@ -302,7 +302,7 @@ is called with the current `Monkey\Web\Request` as first parameter, it can eithe
     
 ## The Router Component
 
-With this feature comes the `Monkey\Router` component, which have theses functions
+With this feature comes the `Monkey\Framework\Router` component, which have theses functions
 
 ```php
 // Redirect the current request

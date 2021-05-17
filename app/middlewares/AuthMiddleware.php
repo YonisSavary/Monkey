@@ -2,7 +2,7 @@
 
 namespace Middlewares;
 
-use Monkey\Router;
+use Monkey\Framework\Router;
 use Monkey\Services\Auth;
 
 class AuthMiddleware 
