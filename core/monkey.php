@@ -32,12 +32,15 @@ foreach ($basefiles as $intern_file){
 
 
 // Load Configuration And Caches
-Monkey\Storage\Session::init();
 Monkey\Storage\Config::init();
 Monkey\Storage\Register::init();
 
 // Load Applications
 Monkey\Framework\AppLoader::init();
+
+// Session is loaded after your application, so 
+// you can avoid PHP incomplete classes in your session
+Monkey\Storage\Session::init();
 
 Monkey\Framework\Router::init();
 
