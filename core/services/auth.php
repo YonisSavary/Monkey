@@ -38,12 +38,14 @@ class Auth
         if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
         if (Config::get("auth_enabled") !== true) return null;
 
-        $model_name = "Models\\".Config::get("auth_model");
-        if (!class_exists($model_name)) Trash::fatal("$model_name Model does not exists !", true);
+        $model_name = Config::get("auth_model");
+        if (!class_exists($model_name, false)) $model_name = "Models\\".$model_name;
+        if (!class_exists($model_name, true)) Trash::fatal("$model_name Model does not exists !", true);
 
         $model = new $model_name();
         $parser = new ModelParser($model_name);
         $fields = $parser->get_model_fields();
+
 
         $login_field = Config::get("auth_login_field");
         if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $login_field public field", true);

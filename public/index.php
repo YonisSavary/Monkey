@@ -1,5 +1,6 @@
 <?php
 
+use Monkey\Framework\AppLoader;
 use Monkey\Framework\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -26,7 +27,6 @@ require_once "core/monkey.php";
 Router::add("/", function(Request $req){
     return Response::json(["status"=>"It's does works"]);
 });
-
 
 
 

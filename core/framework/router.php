@@ -256,11 +256,11 @@ class Router
         // Discompose the `callback` attribute
         $callback_parts = explode("->", $to_execute);
         $controller_class = $callback_parts[0];
-        if (!class_exists($controller_class)) $controller_class = "Controllers\\".$controller_class;
         $method = $callback_parts[1];
 
         // Create the controller and execute the route callback
-        if (!class_exists($controller_class)) return Trash::fatal("$controller_class does not exists !");
+        if (!class_exists($controller_class, false)) $controller_class = "Controllers\\".$controller_class;
+        if (!class_exists($controller_class, true)) return Trash::fatal("$controller_class does not exists !");
         $controller = new $controller_class();
 
         if (!method_exists($controller, $method)) return Trash::fatal("$method method does not exists !");
@@ -277,8 +277,8 @@ class Router
 	{
 		if (is_callable($middleware_name)) return $middleware_name(Request::$current);
 	
-        if (!class_exists($middleware_name)) $middleware_name = "Controllers\\".$middleware_name;
-		if (!class_exists($middleware_name)) return Trash::fatal("$middleware_name does not exists!");
+        if (!class_exists($middleware_name, false)) $middleware_name = "Middlewares\\".$middleware_name;
+		if (!class_exists($middleware_name, true)) return Trash::fatal("$middleware_name does not exists!");
 
 		$middleware = new $middleware_name();
 		if (!method_exists($middleware, "handle")) return Trash::fatal("$middleware_name does not have a 'handle' function");
