@@ -11,6 +11,7 @@ namespace Kernel\Model;
  * Also this class is used to parse SQL results to put them into model objects
  */
 class ModelParser {
+	
     public $model;
 
     /**

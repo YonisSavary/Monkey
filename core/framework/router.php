@@ -2,54 +2,90 @@
 
 namespace Monkey\Framework;
 
+use Closure;
 use Monkey\Storage\Register;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
-use stdClass;
 
 class Router 
 {
-    public static $enabled_groups = [];
+	const DEFAULT_GROUPS =  [
+		"path" => [],
+		"middlewares" => [],
+		"methods" => []
+	];
+
+    public static $groups = self::DEFAULT_GROUPS;
     public static $list = []; // Current routes list
-    public static $temp = []; // Not saved routes, used in `route_current` function
+    public static $temp = []; // Not saved routes, used in `route` function
 
 
     /**
-     * Enable a global middleware 
-     * that will be put on every added routes
-     * until it is disabled
+	 * Enable routes groups 
+	 * ___
+	 * Router Groups
+	 * There are 3 Types of groups :
+	 * - path (prefixes)
+	 * - middlewares
+	 * - methods
+	 * ___
+	 * - path are the prefixes to add before new routes url
+	 * - middlewares are the middlewares or closure to execute before executing the controller callback
+	 * - methods are the **allowed** methods of your new routes (merged with the route methods)
+	 * 
+	 * Example :
+	 * ```php
+	 * 		[
+	 * 			"path" => ["api"],
+	 * 			"middlewares" => ["AuthMiddleware" , "AnotherOne", function(){...}],
+	 * 			"methods" => ["POST"]
+	 * 		]
+	 * ```
+	 * 
+	 * With these groups, every new route 
+	 * - will have a "/api" prefix on their paths
+	 * - will need the execution of the "AuthMiddleware", "AnotherOne" and the Closure middlewares
+	 * - and can be accessed with the POST methods
      */
-    public static function start_group(string|array $names)
+    public static function groups(array $groups)
     {
-        if (is_array($names))
-        {
-            foreach ($names as $n) 
-            {
-                self::start_group($n);
-            }
-        }
-        else 
-        {
-            array_push(self::$enabled_groups, $names);
-        }
+		foreach (self::$groups as $key => $void){
+			self::$groups[$key] = array_merge(self::$groups[$key], $groups[$key] ?? []);
+		}
     }
 
 
-    public static function end_group(string|array $names)
+	/**
+	 * Given the same syntax as `Router::groups`,
+	 * this function disable the given groups
+	 * 
+	 * (See `Router::groups` for syntax docs)
+	 */
+    public static function end_groups(array $groups)
     {
-        if (!is_array($names)) $names = [$names];
-        self::$enabled_groups = array_diff(self::$enabled_groups, $names);
+		foreach (self::$groups as $key => $void){
+        	self::$groups[$key] = array_diff(self::$groups[$key], $groups[$key]);
+		}
     }
 
+
+	/**
+	 * Reset the routes groups
+	 */
     public static function end_all_groups()
     {
-        self::$enabled_groups = [];
+        self::$groups = self::DEFAULT_GROUPS;
     }
 
+
+	/**
+	 * Get current Router groups with the 
+	 * same syntax as described in `Router::groups`
+	 */
     public static function get_groups()
     {
-        return self::$enabled_groups;
+        return self::$groups;
     }
 
 
@@ -68,6 +104,7 @@ class Router
 
     /**
      * Save the routes with the `Register` component
+	 * @deprecated 
      */
     public static function save() : void
     {
@@ -90,47 +127,8 @@ class Router
     }
 
 
-    /**
-     * Given a route path, this function return
-     * a regex to reach it
-     * 
-     * @param string $path Route Path 
-     * @return string Route Regex 
-     */
-    public static function get_regex(string $path) : string
-    {
-        $regex = $path;
-        $regex = str_replace("/", "\\/", $regex);
-        $regex = preg_replace("/\{[A-Za-z0-9_.\-]+\}/", ".+", $regex);
-        $regex = "/^$regex$/";
-        return $regex;
-    }
 
-
-    /**
-     * Create a new route array and return it
-     * 
-     * @param string $path Route's Path (URL)
-     * @param mixed $callback Route Callback (controllerName->methodName)
-     * @param string $name Route Name (optionnal)
-     * @param array $middlewares Routes Middlewares (optionnal) (classnames)
-     * @param array $methods Routes HTTP methods (optionnal) 
-     * @return stdClass the new route
-     */
-    public static function get_route(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=null) : stdClass
-    {
-        $new_route = new stdClass();
-        $new_route->path = $path;
-        $new_route->callback = $callback;
-        $new_route->name = $name;
-        $new_route->methods = $methods;
-        $new_route->middlewares = $middlewares;
-        $new_route->regex = self::get_regex($path);
-        return $new_route;
-    }
-    
-
-    /**
+	/**
      * Add a temporary route in `self::$temp`
      * 
      * @param string $path Route's Path (URL)
@@ -141,9 +139,9 @@ class Router
      */
     public static function add(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
-        $middlewares = array_merge($middlewares, self::$enabled_groups);
-        $new_routes = self::get_route($path, $callback, $name, $middlewares, $methods);
-        array_push(self::$temp, $new_routes);
+        $new_route = new Route($path, $callback, $name, $middlewares, $methods);
+		$new_route->apply_groups(self::$groups);
+        array_push(self::$temp, $new_route);
     }
 
     
@@ -158,14 +156,14 @@ class Router
      */
     public static function add_to_register(string $path, mixed $callback, string $name=null, array $middlewares=[],  array $methods=[]) : void
     {
-        $new_routes = self::get_route($path, $callback, $name, $middlewares, $methods);
+        $new_routes = new Route($path, $callback, $name, $middlewares, $methods);
         array_push(self::$list, $new_routes);
         Register::set("routes", self::$list);
     }
     
 
     /**
-     * Remove a route from the `self::$list` array
+     * Remove a route from the `Router::$list` array
      * 
      * @param string $nameOrRoute Can be either a route name of 
      * a route path, every maching routes are unsets
@@ -204,34 +202,6 @@ class Router
 
 
     /**
-     * Given a route path and a request path, this 
-     * function return a slug array, slugs are defined
-     * by a string between braces in a route path
-     * 
-     * @param string $route_path Path of the Route Object 
-     * @param string $request_path Path of the HTTP Request
-     * @return array Slugs array
-     * @example simple_use self::build_slugs("/example/{user_id}", "/example/123") => Array( "user_id"=>123 )
-     */
-    public static function build_slugs(string $route_path, string $request_path) : array
-    {
-        $route_parts = explode("/", $route_path);
-        $request_parts = explode("/", $request_path);
-        $slugs = [];
-
-        for ($i=0; $i < count($route_parts); $i++)
-        {
-            $pattern = $route_parts[$i];
-            if (!preg_match("/\{.+\}/", $pattern)) continue;
-            $slug_name = preg_replace("/[\{\}]/", "", $pattern);
-            $slug_value = $request_parts[$i];
-            $slugs[$slug_name] = $slug_value;
-        }
-        return $slugs;
-    } 
-
-
-    /**
      * Given an object, this function display its
      * content if it is a Response Object (and then die)
      * 
@@ -250,20 +220,20 @@ class Router
     /**
      * Call a Route callback and return the value
      */
-    public static function execute_route_callback(string|callable $to_execute, mixed $custom_args=null) : mixed
+    public static function execute_route_callback(string|Closure|array $to_execute, mixed $custom_args=null) : mixed
     {
 		if (is_callable($to_execute)) return $to_execute(Request::current());
         // Discompose the `callback` attribute
-        $callback_parts = explode("->", $to_execute);
-        $controller_class = $callback_parts[0];
-        $method = $callback_parts[1];
-
+		$callback_parts = (is_string($to_execute))?  explode("->", $to_execute) : $to_execute;
+		$controller_class = $callback_parts[0];
+		$method = $callback_parts[1];
+		
         // Create the controller and execute the route callback
         if (!class_exists($controller_class, false)) $controller_class = "Controllers\\".$controller_class;
-        if (!class_exists($controller_class, true)) return Trash::fatal("$controller_class does not exists !");
+        if (!class_exists($controller_class, true)) return Trash::fatal("\"$controller_class\" class does not exists !");
         $controller = new $controller_class();
-
-        if (!method_exists($controller, $method)) return Trash::fatal("$method method does not exists !");
+		// Execute the controller callback
+        if (!method_exists($controller, $method)) return Trash::fatal("\"$controller_class->$method\" method does not exists !");
         return $controller->$method( $custom_args ?? Request::current());
     }
 
@@ -273,17 +243,28 @@ class Router
 	 * will return (every middleware handle function is called with 
 	 * the current request as first parameter)
 	 */
-	public static function execute_middleware(string $middleware_name) : mixed
+	public static function execute_middleware(string|Closure $middleware_name) : mixed
 	{
-		if (is_callable($middleware_name)) return $middleware_name(Request::$current);
+		if (is_callable($middleware_name)) 
+		{
+			$res = $middleware_name(Request::$current);
+		}
+		else 
+		{
+			if (!class_exists($middleware_name, false)) $middleware_name = "Middlewares\\".$middleware_name;
+			if (!class_exists($middleware_name, true )) return Trash::fatal("$middleware_name does not exists!");
+			$middleware = new $middleware_name();
 	
-        if (!class_exists($middleware_name, false)) $middleware_name = "Middlewares\\".$middleware_name;
-		if (!class_exists($middleware_name, true)) return Trash::fatal("$middleware_name does not exists!");
+			if (!method_exists($middleware, "handle")) return Trash::fatal("$middleware_name does not have a 'handle' function");
+			$res = $middleware->handle(Request::current());
+		}
+	
+		// Middlewares can either return a response (that will be displayed)
+		// Or a edited Request (that will replace the current one)
+		self::display_if_response($res);
+		if ($res instanceof Request) Request::$current = $res;
 
-		$middleware = new $middleware_name();
-		if (!method_exists($middleware, "handle")) return Trash::fatal("$middleware_name does not have a 'handle' function");
-		
-		return $middleware->handle(Request::current());
+		return $res;
 	}
 
     
@@ -294,31 +275,25 @@ class Router
      * 3. create a `Request` object
      * 4. call a route callback if existing, with the `Request` object as an argument
      */
-    public static function route_current(bool $return_response=false, Request $forced_request=null)
+    public static function route(Request $req, bool $return_response=false)
     {
         $routes_all = array_merge(self::$list, self::$temp);
-		$req = $forced_request ?? Request::build();
-
         foreach($routes_all as $route)
         {
-            if (!isset($route->path)) continue;
-            if (!isset($route->regex)) $route->regex = self::get_regex($route->path);
-            if (preg_match($route->regex, $req->path) === 0) continue;
+			if (! $route instanceof Route ) continue;
+            if (! $route->match($req) ) continue;
             
-            if (count($route->methods ?? []) > 0)
-            {
-                if (!in_array($req->method, $route->methods)) continue;
-            }
+			// We can't just do the in_array condition, as we must 
+			// check methods only if the route has a method constraint
+            if (count($route->methods ?? []) > 0 && (!in_array($req->method, $route->methods))) continue;
 
-			$req->slugs = self::build_slugs($route->path, $req->path);
+			$req->build_slugs($route->path);
             Request::$current = $req;
 
 			// Executing Callbacks
 			foreach ($route->middlewares ?? [] as $middleware_name)
 			{
-				$res = self::execute_middleware($middleware_name);
-				self::display_if_response($res);
-                if ($res instanceof Request) Request::$current = $res;
+				self::execute_middleware($middleware_name);
 			}
 
 			$response = self::execute_route_callback($route->callback);
@@ -327,7 +302,8 @@ class Router
 			
             die();
         }
+
 		// Route not found
-        Trash::send("404", $req->path);
+        Router::display_if_response(Trash::send("404", $req->path));
     }
 }

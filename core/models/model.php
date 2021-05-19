@@ -9,6 +9,12 @@ use Monkey\Web\Trash;
 
 /**
  * *HAVING KNOWLEDGE ABOUT THE `Query` CLASS IS ADVISED BEFORE DIVING INTO THIS CLASS*
+ * 
+ * protected members are for internal purpose :
+ * - protected $table : name of the SQL table
+ * - protected $primary_key : unique column (used for deletion and saving)
+ * 
+ * public members are your table column
  */
 abstract class Model
 {

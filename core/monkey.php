@@ -4,6 +4,7 @@ $basefiles = [
 	"core/framework/router.php",
 	"core/framework/app_loader.php",
 	"core/framework/middlewares.php",
+	"core/framework/route.php",
 
 	"core/web/web.php",
 	"core/web/renderer.php",

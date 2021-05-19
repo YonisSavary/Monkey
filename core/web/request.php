@@ -77,6 +77,37 @@ class Request
 	}
 
 
+
+
+    /**
+     * Given a route path, 
+	 * this function build the slugs array for the 
+	 * request object
+     * 
+     * @param string $route_path Path of the Route Object 
+	 * @param bool $return Should the function return the built array ?
+     */ 
+    public function build_slugs(string $route_path, bool $return=false)
+    {
+        $route_parts = explode("/", $route_path);
+        $request_parts = explode("/", $this->path);
+        $slugs = [];
+
+        for ($i=0; $i < count($route_parts); $i++)
+        {
+            $pattern = $route_parts[$i];
+            if (!preg_match("/\{.+\}/", $pattern)) continue;
+            $slug_name = preg_replace("/[\{\}]/", "", $pattern);
+            $slug_value = $request_parts[$i];
+            $slugs[$slug_name] = $slug_value;
+        }
+		
+        if ($return === true) return $slugs;
+		$this->slugs = $slugs;
+    } 
+
+
+
     /**
      * - Get one or multiples keys from the `Request` Object
 	 * - If you give a string in `$keys`, the function will return either the value or null

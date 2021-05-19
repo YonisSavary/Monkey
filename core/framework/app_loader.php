@@ -6,22 +6,32 @@ use Monkey\Storage\Config;
 use Monkey\Storage\Register;
 
 /**
- * This class can load "applications", an application is made of 
- * 4 directories (+1 Optionnal):
+ * This class can load "applications", an application can be made of some directories :
+ * 
+ * Thoses directories will be added to the autoloader :
+ * - models
  * - controllers
  * - middlewares
- * - models
- * - views
- * - others (optionnal)
+ * - others
+ * - routes
+ * 
+ * see `AppLoader::AUTOLOAD_DIRECTORIES_NAMES` for more
  */
 class AppLoader
 {
     const CACHE_FILE_NAME = "cached_apploader";
+	const AUTOLOAD_DIRECTORIES_NAMES =  [
+		"models", 
+		"controllers", 
+		"middlewares",
+		"others", 
+		"routes"
+	];
 
-    public static $views_directories = [];
+	
     public static $app_directories = [];
     public static $config_paths = [];
-
+    public static $views_directories = [];
     public static $autoload_list = [];
 
 
@@ -76,7 +86,7 @@ class AppLoader
                 {
                     array_push(AppLoader::$views_directories, $file_path);
                 } 
-                else if (in_array($file, ["others", "controllers", "models", "middlewares"]))
+                else if (in_array($file, AppLoader::AUTOLOAD_DIRECTORIES_NAMES))
                 {
                     $results = array_merge($results, AppLoader::explore_full_dir($file_path));
                 }

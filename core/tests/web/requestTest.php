@@ -5,6 +5,13 @@ use PHPUnit\Framework\TestCase;
 
 class RequestTest extends TestCase
 {
+	public function test_build_slugs(){
+		$r = new Request("/some/foo");
+		$r->build_slugs("/some/{user}");
+		$slugs = $r->slugs;
+		$this->assertEquals(["user"=>"foo"], $slugs);
+	}
+
 	public function test_current(){
 		$req = Request::current();
 		$this->assertTrue(  $req instanceof Request || is_null($req) );

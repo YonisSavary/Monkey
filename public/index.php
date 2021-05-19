@@ -1,6 +1,5 @@
 <?php
 
-use Monkey\Framework\AppLoader;
 use Monkey\Framework\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -10,6 +9,8 @@ use Monkey\Web\Response;
  * but also load vendor.php if existants
  * 
  * Also, we change the directory to the project directory
+ * (which is REALLY IMPORTANT, don't worry it shouldn't 
+ * allow access to local files)
  */
 chdir("..");
 require_once "core/monkey.php";
@@ -19,19 +20,18 @@ require_once "core/monkey.php";
 /**
  * If your application contains only a few
  * routes, you can add them here with Monkey\Framework\Router::add()
- * (don't forget 'add()' has a permanent effect !)
  */
 
-/* Basic Route Example */
 
+/* Basic Route Example */
 Router::add("/", function(Request $req){
-    return Response::json(["status"=>"It's does works"]);
+    return Response::json(["status"=>"It's does works !"]);
 });
 
 
 
 /**
  * As this function is called, Monkey\Framework\Router
- * look into the Request and begin it lifecycle
+ * look into the given Request and begin it lifecycle
  */
-Router::route_current();
+Router::route(Request::build());

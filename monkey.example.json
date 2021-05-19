@@ -10,6 +10,7 @@
 	"db_name" : "dbname",
 	"db_user" : "root",
 	"db_pass" : "secret",
+	"db_file" : null,
 
 	"app_prefix" : "/assets",
 	

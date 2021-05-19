@@ -57,16 +57,17 @@ class Trash
 
 
 
-Trash::on("fatal", function (string $message): Response
+Trash::on("fatal", function (string $error): Response
 {
+    $message = "<h1>Error 500</h1>";
     if (Config::get("safe_error_display", false) !== true)
 	{
-        $message = "Fatal Error In Monkey : $message";
+        $message .= "Fatal Error In Monkey : $error";
     } 
-    $message = "<h1>Error 500</h1> $message";
 
     return Response::html($message);
 });
+
 
 Trash::on("404", function ($request_path) : Response
 {

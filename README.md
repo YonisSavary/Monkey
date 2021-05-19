@@ -44,8 +44,8 @@ to be the simplest possible so we can't be lost :
 
 ## Directories
 
- * app : your MVC application, with models/views/controllers AND middlewares
- * config : the holdall of json files except the framework configuration
+ * app : your MVC application, with models/views/controllers and others PHP files you want to load
+ * cache : the hold-all of json files except the framework configuration
  * core : Monkey core files, which are meant to be simples and well-documented, it is made to let you edit features at will 
  * public : Public PHP directory, supposed to host `index.php` and your assets
 
@@ -56,9 +56,9 @@ Here are the differents namespaces you may see/use, I won't explain the explicit
 
 | Namespace | Purpose |
 |-----------|---------|
-| Models\ | |
-| Controllers\ | |
-| Middlewares\ | |
+| Models\ | **Your** Models |
+| Controllers\ | **Your** Controllers |
+| Middlewares\ | **Your** Middlewares |
 | Monkey\Framework | Some internal components for Monkey (like the `Router`, `AppLoader`...)  | 
 | Monkey\Services\ | So far, only the `Auth` component is in this namespace | 
 | Monkey\Web\ | Everything that touch to the Http Requests/Responses | 
@@ -77,10 +77,10 @@ Here is how a request is processed by Monkey :
 
  1. A Request comes to `index.php`
  2. `index.php` initialize Monkey components and call the router
- 3. `Monkey\Framework\Router` go through all your routes and compare the request path
- 4. If found, the middlewares and callback are called with a `Monkey\Web\Request` object argument, If not found : `Trash` is called to display an error
- 5. If the callback return a `Response` object, its content is displayed
-
+ 3. `Monkey\Framework\Router` go through all your routes and compare the request URI
+ 4. If found, the middlewares and callback are called with a `Monkey\Web\Request` object as argument, ff not found : `Trash` is called to display an error
+ 5. If a callback or the controller return a `Monkey\Web\Response` object, its content is displayed and the request killed
+ 
 
 
 
@@ -93,7 +93,7 @@ Here is how a request is processed by Monkey :
 ## How to configure Monkey ?
 
 The framework configuration is stored in `monkey.json`
-and read by the `Monkey\Storage\Config` component when `Config::init()` is called,
+and read by the `Monkey\Storage\Config` component,
 here are some functions you may find interesting
 
 
@@ -140,6 +140,7 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 | `db_name` | Database name |  |
 | `db_user` | Database login |  |
 | `db_pass` | Database user password |  |
+| `db_file` | Database file-name (only for sqlite driver) |  |
 | `app_prefix` | URL prefix (pretty useful for assets files url) |  |
 
 
@@ -147,12 +148,11 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 
 ## Organize your configuration !
 
-If you want to separate your configuration, you can create
+If you want to split your configuration file, you can create
 a file named `monkey.json` in your **application folder** 
 
 By default, you can create a file as `./app/monkey.json` it will 
-be read by the `AppLoader` component and treated as more important
-than the global configuration file
+be read by the `Monkey\Framework\AppLoader` component and treated as more important than the initial configuration file
     
 
     
@@ -238,11 +238,10 @@ in monkey.json
     
 # Routing
 
-Monkey routes are stored in `config/routes.json` by default
-A route is defined by 2 mandatory and 3 optionnals properties :
+Monkey routes are stored in `config/routes.json` by default, a route is defined by 2 mandatory and 3 optionnals properties :
 
  * path : the url to your route
- * callback : the function to call (format : "controllerName->methodName")
+ * callback : the route callback
  * name (optionnal) : a name for your route, useful when templating
  * methods (optionnal) : allowed HTTP methods (GET, POSTS, PUT ...)
  * middlewares (optionnal) : names of the middlewares classes to call
@@ -259,12 +258,21 @@ Here is an full-example
 }
 ```
 
+You can also define them in your PHP files with `Router::add()` method
 
-Note : When a route callback is called, a `Monkey\Web\Request` object is given in parameter,
-containing most of the request informations
+```php
+// As said just before, only the path and callback are mandatory
+Router::add("/someUrl", function(){...}, "route_name", ["Middle1", "Middle2"], ["GET"])
 
-PS : Also, if a request don't respect a route methods, it is skipped and don't raise any error, with that 
-you can define multiples routes with the same path but with differents allowed methods
+// Full String Syntax
+Router::add("/someUrl", "SomeController->someFunction")
+
+// Laravel-like syntax
+Router::add("/someUrl", [SomeController::class, 'someFunction'])
+```
+
+**PS : Also, if a request don't respect a route methods, it is skipped and don't raise any error, with that 
+you can define multiples routes with the same path but with differents allowed methods**
 
     
     
@@ -334,16 +342,41 @@ Router::remove("orAName");
 Router::build_slugs();
 
 // Route the current HTTP request
-Router::route_current();
+Router::route();
 ```
     
 
+## Routing Groups
 
+There are 3 Types of groups :
+- path (URI prefixes)
+- middlewares groups
+- allowed methods groups
 
+Description :
+- path are the prefixes to add before new routes url
+- middlewares are the middlewares or closure to execute before executing the controller callback
+- methods are the allowed methods of your new routes (merged with the route methods)
 
+Example :
+```php
+[
+	"path" => ["api"],
+	"middlewares" => ["AuthMiddleware" , "AnotherOne", function(){...}],
+	"methods" => ["POST"]
+]
+```
 
+With these groups, every new route :
+- will have a "/api" prefix on their paths
+- will need the execution of the "AuthMiddleware", "AnotherOne" and the Closure middlewares
+- and can be accessed with the POST methods
+   
 
+You can disable one or multiples groups with `Router::end_groups([...])` or `Router::end_all_groups`
 
+PS : If you want to, you can get the declared groups
+with `Router::get_groups`
 
 
 
@@ -368,9 +401,10 @@ There are several keys that need to be edited in `monkey.json` :
 | db_name | Database name |
 | db_user | Login to log with |
 | db_pass | Password for the user |
+| db_file | File path for database (sqlite driver) |
 
 
-The composant to prepare and execute query is `Monkey\DB` :
+The composant to prepare and execute query is `Monkey\Dist\DB` :
 
 ```php
 // Initialize the component, create a connection and throw 
@@ -488,7 +522,8 @@ You may have noticed, on the last query, we used the `and` function, this one,
 and the `or` are made to make your query more readable, so you can add multiples
 conditions more easily
 
-```php$q->where("firstname", "boo")->or()->where("name", "barrr");
+```php
+$q->where("firstname", "boo")->or()->where("name", "barrr");
 ```
     
     
@@ -501,11 +536,11 @@ the purpose of models is to have a structural copy of your tables
 
 Here is an example of model :
 ```php
-&lt;?php
+<?php
 
 namespace Models;
 
-use Monkey\Model;
+use Monkey\Model\Model;
 
 class Users extends Model {
     protected $table="users";
@@ -516,17 +551,22 @@ class Users extends Model {
 ```
 
 The structure is simple, every public fields of your class defines your model fields,
-and the others are used in it internal process.
+and the others are used in it internal methods.
 
 
-The abstract class `Monkey\Model` has a few functions linked to the `Monkey\Query` ones :
+The abstract class `Monkey\Model\Model` has a few functions linked to the `Monkey\Dist\Query` ones :
 
 ```php$modelObject = new User();
+// Table method
 $modelObject->get("id", "name");
 $modelObject->get_all();
 $modelObject->update();
 $modelObject->insert();
 $modelObject->delete_from();
+
+// Object method 
+$modelObject->save();
+$modelObject->delete();
 ```
 
 **Note : `delete_from` build a query to delete from a table, the `delete` method 
@@ -560,10 +600,9 @@ parse the results objects.
 # Controllers
 
 Controllers are simple, there is only one constraint, it has to be in the 
-`Controllers` namespace, then you can create public functions to its 
-and use its in your routes
+`Controllers` namespace, then you can create public functions and use them in your routes
 
-
+Also, as a route function is called, a `Monkey\Web\Request` object is given a first parameter
 
 
 
@@ -591,12 +630,14 @@ PHP is already a template engine, so we didn't put one more,
 Monkey has one class that may help you to do render PHP templates
 
 
-Assuming that we created a file named `app/views/home.php`, we can 
+Assuming that we created a file named `app/views/subdirectory/home.php`, we can 
 render it by calling :
 
 ```php
 use Monkey\Web\Renderer;
 Renderer::render("home");
+// or
+Renderer::render("subdirectory/home");
 ```
         
 This function act in a recursive way, so you can move your templates
@@ -612,33 +653,31 @@ while making your templates
 ```php
 // Add your app url prefix to the first parameter
 // "app_prefix" in monkey.json
-
-&lt;?=php url("assets/someExample/app.css") ?>
+<?= url("assets/someExample/app.css") ?>
 
 // Can render a template inside another
 // For example, every sections of the documentations
 // are separated into multiples files
-
-&lt;?=php include_file("another/file") ?>
+<?= include_file("another/file") ?>
 
 // This function can find the path to a route if it 
 // has a name, if no route was found, "/loginPage" would be return in this example
-
-&lt;?=php router("loginPage") ?>
+<?= router("loginPage") ?>
 ```
     
     
 ## Passing Variables to Renderer
 There is a quick way to pass variables to the `Renderer` class
 ```php
-Renderer::render("home", ["app-name"=>"MonkeyExample"]);
+Renderer::render("home", ["app_name"=>"MonkeyExample"]);
 ```
-You can access `app-name` with this instruction
+You can access `app_name` with this instruction
 ```php
-&lt;?= $vars["app-name"] ?> // Will display "MonkeyExample"
+<?= $vars["app_name"] ?> // Will display "MonkeyExample"
 ```
     
-
+**PS: The variable usage will evolve, the goal is 
+to allow you to use a `$app_name` function for example**
 
 
 
@@ -670,6 +709,7 @@ your `monkey.json` file :
 | `auth_model` | Model class name for users |
 | `auth_login_field` | Unique field used to authenticate users (can be email, login, phone...etc) |
 | `auth_pass_field` | field name where password are stored |
+| `auth_salt_field` | field for salts (leave null to disable) |
   
     
 ## Usage
@@ -679,8 +719,8 @@ your `monkey.json` file :
 ```php
 use Monkey\Services\Auth;
 
-// Can create a new password (BCRYPT with a cost of 8 by default)
-Auth::create_password();
+// Return a hashed password (BCRYPT with a cost of 8 by default)
+Auth::create_password("someNewPassword");
 
 // Check if the password of "admin" is "somePassword" in your database
 // and return the result
@@ -691,7 +731,7 @@ Auth::check("admin", "somePassword");
 Auth::attempt("admin", "somePassword");
 
 // Directly log a user with its model object
-Auth::login($userObject);
+Auth::login($user_object);
 
 // Logout a user if one is actually authenticated
 Auth::logout();
@@ -711,11 +751,9 @@ and can be recovered with
 
 ```php
 use Monkey\Services\Auth;
+
+// Can give : 272143223ac0bd8a2448e2c0bf7143e0f1580a9f3e23823c80df2e3a4423f5b4 for example
 Auth::token();
-
-// Can give : 272143223ac0bd8a2448e2c0bf7143e0f1580a9f3e23823c80df2e3a4423f5b4
-// for example
-
 ```
 
 
@@ -726,13 +764,10 @@ Auth::token();
 ## Middleware 
 
 By default, Monkey includes a little middleware that you can use/edit/delete, it 
-is stored in `app/middlewares` and reject to another path every unauthenticated client 
+is stored in `app/middlewares` and redirect to another path every un-authenticated client 
 on a route
 
-A middleware is a class that is in the `\Middlewares` namespace, and have a `handle` function
-which can take a `Request` object as first parameter, and can either return an edited request 
-or a `Response` object (if a response is return, its content it directly displayed and the 
-request killed)
+A middleware is a class that is in the `Middlewares` namespace, and have a `handle` function, which can take a `Request` object as first parameter, and can either return an edited request or a `Response` object (if a response is return, its content it directly displayed and the request killed)
 
 Also, if you want to have a cleaner code, you can use the `\Monkey\Framework\Middleware`
 interface, it force you to make the right function
