@@ -7,6 +7,7 @@ use Monkey\Storage\Register;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
+use Monkey\Framework\Route;
 
 class Router 
 {
@@ -305,5 +306,19 @@ class Router
 
 		// Route not found
         Router::display_if_response(Trash::send("404", $req->path));
+    }
+
+    /**
+     * Return the first route that match a given name or path
+     */
+    public static function find(string $name_or_path): Route|bool
+    {
+        $all_routes = array_merge(self::$list, self::$temp);
+        foreach ($all_routes as $r)
+        {
+            if ($r->path === $name_or_path) return $r;
+            if ($r->name === $name_or_path) return $r;
+        }
+        return false;
     }
 }

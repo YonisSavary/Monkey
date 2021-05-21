@@ -1,6 +1,5 @@
 <?php
 
-use Monkey\Dist\Query;
 use Monkey\Framework\Router;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -13,7 +12,11 @@ use Monkey\Web\Response;
  * (which is REALLY IMPORTANT, don't worry it shouldn't 
  * allow access to local files)
  */
+
+// Don't put this line in core/monkey.php, as we need it for 
+// Phpunit tests, you don't want to change directory in your tests
 chdir("..");
+
 require_once "core/monkey.php";
 
 
