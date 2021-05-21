@@ -1,6 +1,7 @@
 <?php
 
 use Monkey\Framework\Router;
+use Monkey\Web\Renderer;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 

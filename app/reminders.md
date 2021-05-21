@@ -126,8 +126,16 @@ like this
 Monkey's philosophy is to stay quite simple, BUT, you can
 still add a renderer component with composer if you wish so
 
+Here is an example
+
+```php
+Renderer::render("someFile", ["title" => "my super template !"]);
+```
+
+`views/someFile.php` :
 ```php
 <ul>
+    <?= $title ?> // my super template !
     <?php for ($i=0; $i<5; $i++) { ?>
         <li>Some Example : <?= $i ?></li>
     <?php } ?>

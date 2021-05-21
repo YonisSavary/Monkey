@@ -21,9 +21,9 @@ function include_file(string $template_name)
 /**
  * Render another template where this function is called
  */
-function render(string $template_name){
-    if (!isset($GLOBALS["render"])) $GLOBALS["render"] = [];
-    return Renderer::render($template_name, $GLOBALS["render"], true);
+function render(string $template_name, array $vars=[]) : string
+{
+    return Renderer::render($template_name, $vars, true);
 }
 
 

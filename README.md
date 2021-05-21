@@ -643,7 +643,24 @@ Renderer::render("subdirectory/home");
 This function act in a recursive way, so you can move your templates
 into subfolders it won't be a problem
         
-    
+
+## Example 
+
+Let say we've created two files : `someTemplate.php` and `someController.php` :
+
+`someTemplate.php` content :
+```php
+<h1> 
+    <?= $title ?> 
+</h1>
+```
+
+`someController.php` content :
+```php
+Renderer::render("someTemplate", ["title"=>"It works"]);
+``` 
+
+This example will display a `It works` title !
     
 ## Little helpers (Rendering Functions)
 
@@ -658,7 +675,8 @@ while making your templates
 // Can render a template inside another
 // For example, every sections of the documentations
 // are separated into multiples files
-<?= include_file("another/file") ?>
+<?= render("another/file") ?>
+<?= render("another/file", ["someVariable" => [...]]) ?>
 
 // This function can find the path to a route if it 
 // has a name, if no route was found, "/loginPage" would be return in this example
