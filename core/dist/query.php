@@ -18,17 +18,27 @@ class Query
     const UPDATE    = 2;
     const DELETE    = 3;
 
-    public $get_results = true;
+    const ALLOWED_UNPROTECTED_TERMS = [
+        "NULL",
+        "NOT NULL"
+    ];
+
     // CRUD Mode
-    public $mode;
+    protected $mode;
 
     // Particulary Used when working with models
     // the execute function can call the ModelParser to parse 
     // the results and return a bunch of Model objects
-    public $parser = null;
-    
+    protected $parser = null;
+
     // Variable where the final SQL query is stored 
-    public $query;
+    protected $sql_string = null;
+    protected $sql_parts = [];
+
+    protected $given_transition = false;
+    protected $has_condition = false;
+
+    // --------- QUERY PROPERTIES --------- 
 
     // Initial Selector :
     // can be :
@@ -36,23 +46,22 @@ class Query
     // SELECT FROM *
     // UPDATE *
     // DELETE FROM * 
-    public $selector;
-
-    // --------- QUERY PROPERTIES --------- 
+    protected $selector;
 
     // common
-    public $where = [];     // for READ | UPDATE | DELETE modes
+    protected $where = [];     // for READ | UPDATE | DELETE modes
 
     // CREATE mode only
-    public $values = [];
+    protected $values = [];
 
     // READ mode only
-    public $order = [];
-    public $limit = "";
-    public $offset = "";
+    protected $order = [];
+    protected $limit = null;
+    protected $offset = null;
 
     // UPDATE mode only
-    public $set = [];
+    protected $set = [];
+
 
 
     /**
@@ -63,7 +72,7 @@ class Query
      * @param ModelParser $parser A ModelParser can be given to parse the results of `execute`
      * @param int $mode CRUD mode (self::CREATE|READ|UPDATE|DELETE)
      */
-    public function __construct(string|array $table, mixed $fields=[],  ModelParser $parser=null, int $mode=self::READ)
+    public function __construct(string|array $table, mixed $fields=[], int $mode=self::READ, ModelParser $parser=null)
     {
         if (is_array($table)){
             $table = join(",", $table);
@@ -73,20 +82,16 @@ class Query
         switch ($mode)
         {
             case self::CREATE:
-                $this->selector = "INSERT INTO $table (". join(", ", $fields) . ") VALUES ";
-                $this->get_results = false;
+                $this->selector = "INSERT INTO $table (". join(", ", $fields) . ")";
                 break;
             case self::READ:
-                $this->selector = "SELECT ". join(", ", $fields) . " FROM $table ";
-                $this->get_results = true;
+                $this->selector = "SELECT ". join(", ", $fields) . " FROM $table";
                 break;
             case self::UPDATE:
-                $this->selector = "UPDATE $table SET ";
-                $this->get_results = false;
+                $this->selector = "UPDATE $table";
                 break;
             case self::DELETE:
-                $this->selector = "DELETE FROM $table ";
-                $this->get_results = false;
+                $this->selector = "DELETE FROM $table";
                 break;
             default:
                 Trash::fatal("Bad Query Mode !", true);
@@ -103,7 +108,7 @@ class Query
      * @param string|array $values Can be either one value or a array of ones
      * @note $values is passed by references so be aware 
      */
-    public function clean_data(string|array &$values) : void
+    public function clean_data(mixed &$values): void
     {
         if (is_array($values))
         {
@@ -114,8 +119,41 @@ class Query
         } 
         else
         {
-            $values = "'".addslashes($values)."'";
+            // Don't need to clean 59 or 1 for example, 
+            // but we do need words
+            if (is_bool($values))
+            {
+                $values = ($values === true) ? "TRUE" : "FALSE";
+            } 
+            else if (!is_numeric($values)  && !in_array($values, Query::ALLOWED_UNPROTECTED_TERMS))
+            {
+                $values = "'".addslashes($values)."'";
+            } 
         }
+    }
+
+
+
+    /**
+     * Reset all the query actions excepts its selector,
+     * so you can re-use the same query multiple time
+     */
+    public function reset(): Query
+    {
+        $this->where = [];     // for READ | UPDATE | DELETE modes
+
+        $this->values = [];
+
+        $this->order = [];
+        $this->limit = "";
+        $this->offset = "";
+
+        $this->set = [];
+
+        $this->given_transition = false;
+        $this->has_condition = false;
+
+        return $this;
     }
 
 
@@ -124,9 +162,12 @@ class Query
      * 
      * @return Query return $this so you can chain up quick functions like this one
      */
-    public function or() : Query
+    public function or(): Query
     {
-        array_push($this->where, " OR ");
+        if ($this->given_transition === false){
+            array_push($this->where, "OR");
+            $this->given_transition = true;
+        }
         return $this;
     }
 
@@ -136,9 +177,12 @@ class Query
      * 
      * @return Query return $this so you can chain up quick functions like this one
      */
-    public function and() : Query
+    public function and(): Query
     {
-        array_push($this->where, " AND ");
+        if ($this->given_transition === false){
+            array_push($this->where, "AND");
+            $this->given_transition = true;
+        }
         return $this;
     }
 
@@ -149,9 +193,9 @@ class Query
      * @param string $field Field to change
      * @param mixed $value New Value to the field
      */
-    public function set(string $field, mixed $value) : Query
+    public function set(string $field, mixed $value, bool $do_clean_value=true): Query
     {
-        $this->clean_data($value);
+        if ($do_clean_value === true) $this->clean_data($value);
         array_push($this->set, "`".$field . "` = " . $value);
         return $this;
     }
@@ -162,7 +206,7 @@ class Query
      * 
      * @param string Values
      */
-    public function values(...$values) : Query
+    public function values(...$values): Query
     {
         $this->clean_data($values);
         array_push($this->values, "(". join(",", $values ) .")");
@@ -173,14 +217,22 @@ class Query
     /**
      * Add a condition to the where array
      * 
+     * You can chain function like this :
+     * where()->and()->where()->or()
+     * 
+     * If you chain where() it will be treated as a AND condition
+     * where()->where() <=> where()->and()->where()
+     * 
      * @param string $field Field to check
      * @param string $value Value you're looking for
      * @param string $comparator Value comparator ('=' by default)
      */
-    public function where(string $field, mixed $value, string $comparator="=") : Query
+    public function where(string $field, mixed $value, string $comparator="=", bool $do_clean_value = true): Query
     {
-		$this->clean_data($value);
-		return $this->rawWhere(" `$field` $comparator $value ");
+		if ($do_clean_value === true){
+            $this->clean_data($value);
+        } 
+		return $this->raw_where("`$field` $comparator $value");
     }
 
 
@@ -189,8 +241,17 @@ class Query
 	 * 
 	 * @param string $condition condition to add
 	 */
-	public function rawWhere(string $condition) : Query {
+	public function raw_where(string $condition): Query {
+        // If no condition join were given, we automatically add a and() condition
+        if ($this->has_condition === true && $this->given_transition === false )
+        {
+            $this->and();
+        }
+
         array_push($this->where, $condition);
+
+        $this->has_condition = true;
+        $this->given_transition = false;
         return $this;
 	}
 
@@ -209,139 +270,129 @@ class Query
 
 
     /**
-     * Add a limit to the query
+     * Add a limit section to the query
+     * You can also set the offset with this function
      * 
      * @param int $limit Limit to set
      * @param int $offset (optionnal) you can put the offset value directly
      */
-    public function limit(int $limit, int $offset=0): Query
+    public function limit(int $limit, int $offset=null): Query
     {
-        $this->limit = " LIMIT $limit ";
-        if ($offset !== 0) $this->offset = " OFFSET $offset";
+        $this->limit = $limit;
+        if ($offset !== null) $this->offset($offset);
         return $this;
     }
 
 
     /**
-     * Offset part 
-     * 
-     * @param int $offset limit offset
-     * @note You can also define the offset with `limit`
+     * You can also define the offset with `limit`
      */
     public function offset(int $offset): Query
     {
-        $this->offset = " OFFSET $offset";
+        $this->offset = $offset;
         return $this;
     }
 
 
-    public function build_order() : string 
-	{
-        if (count($this->order) > 0){
-            return " ORDER BY ". join(", ", $this->order);
-        }
-        return "";
+
+    private function build_part(string $prefix, string $glue, array $pieces)
+    {
+        if (count($pieces) === 0) return null;
+        return $prefix. join($glue, $pieces);
+    }
+
+    private function build_order(){
+        return $this->build_part("ORDER BY ", ", ", $this->order);
+    }
+
+    private function build_wheres(){
+        return $this->build_part("WHERE ", ", ", $this->where);
+    }
+
+    private function build_set(){
+        return $this->build_part("SET ", ", ", $this->set );
+    }
+
+    private function build_values(){
+        return $this->build_part("VALUES ", ", ", $this->values );
+    }
+
+    private function build_limit(){
+        return ($this->limit === null) ? null : "LIMIT $this->limit";
+    }
+
+    private function build_offset(){
+        return ($this->offset === null) ? null : "OFFSET $this->offset";
     }
 
 
-    /**
-     * Build the WHERE statement part 
-     * 
-     * @return string Either the WHERE if the query has conditions or an empty string
-     */
-    public function build_wheres() : string
+    private function build_read() 
     {
-        if (count($this->where) > 0)
-        {
-            return " WHERE " . join("", $this->where);
-        }
-        return "";
-    }
-
-
-    /**
-     * Build the final Query for READ mode
-     * 
-     * @note this function should be used by `build` only !
-     */
-    private function build_read() : string
-    {
-        $this->query = $this->selector ;
-        $this->query .= $this->build_wheres();
-        $this->query .= $this->build_order();
-        $this->query .= $this->limit;
-        $this->query .= $this->offset;
-        return $this->query;
+        $this->sql_parts = [
+            $this->build_wheres(),
+            $this->build_order(),
+            $this->build_limit(),
+            $this->build_offset()
+        ];
     }
 
     
-    /**
-     * Build the final Query for CREATE mode
-     * 
-     * @note this function should be used by `build` only !
-     */
-    private function build_create(): string
+    private function build_create()
     {
-        $this->query = $this->selector;
-        $this->query .= join(", ", $this->values);
-        return $this->query;
+        $this->sql_parts  = [
+            $this->build_values()
+        ];
     }
 
     
-    /**
-     * Build the final Query for UPDATE mode
-     * 
-     * @note this function should be used by `build` only !
-     */
-    private function build_update() : string
+    private function build_update() 
     {
-        $this->query = $this->selector;
-        $this->query .= join(", ", $this->set);
-        $this->query .= $this->build_wheres();
-        $this->query .= $this->build_order();
-        $this->query .= $this->limit;
-        return $this->query;
+        $this->sql_parts  = [
+            $this->build_set(),
+            $this->build_wheres(),
+            $this->build_order(),
+            $this->build_limit()
+        ];
     }
 
     
-    /**
-     * Build the final Query for DELETE mode
-     * 
-     * @note this function should be used by `build` only !
-     */
-    private function build_delete(): string
+    private function build_delete()
     {
-        $this->query = $this->selector;
-        $this->query .= $this->build_wheres();
-        $this->query .= $this->build_order();
-        $this->query .= $this->limit;
-        return $this->query;
+        $this->sql_parts  = [
+            $this->build_wheres(),
+            $this->build_order(),
+            $this->build_limit()
+        ];
     }
 
 
     /**
-     * Build the final query and return it
+     * Build the final query and return it as a String
+     * @return string $query Your SQL Query
      */
     public function build(): string
     {
         switch ($this->mode)
         {
             case self::CREATE:
-                return $this->build_create();
+                $this->build_create();
                 break;
             case self::READ:
-                return $this->build_read();
+                $this->build_read();
                 break;
             case self::UPDATE:
-                return $this->build_update();
+                $this->build_update();
                 break;
             case self::DELETE:
-                return $this->build_delete();
+                $this->build_delete();
                 break;
             default:
                 Trash::fatal("Bad Query Mode !", true);
                 break;
         }
+        $this->sql_parts = array_merge([$this->selector], $this->sql_parts);
+        $this->sql_parts = array_filter($this->sql_parts, fn($value)=> !is_null($value) && $value !== "" );
+        return join(" ", $this->sql_parts);
     }
 
 

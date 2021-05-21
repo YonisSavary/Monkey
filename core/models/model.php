@@ -123,12 +123,12 @@ abstract class Model
      * @param array $fields Fields edited by the new Query
      * @param int $query_mode one of the 4 modes of Query (Query::READ, Query::DELETE...etc)
      */
-    public static function build_query(array $fields=null, int $query_mode): Query
+    public static function build_query(array $fields=null, int $query_mode=Query::READ): Query
     {
         $model = new (get_called_class());
         $table = $model->get_table();
         if ($fields === null) $fields = $model->parser->get_model_fields();
-        return new Query($table, $fields, $model->parser, $query_mode);
+        return new Query($table, $fields, $query_mode, $model->parser);
     }
 
 

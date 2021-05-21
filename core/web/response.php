@@ -28,11 +28,11 @@ class Response
      * 
      * @param mixed $content Content to adapt in json and display
      */
-    public static function json(mixed $content): Response
+    public static function json(mixed $content, int $flags=JSON_PRETTY_PRINT): Response
     {
         $r = new Response();
         $r->header = "Content-Type: application/json";
-        $r->content = json_encode($content);
+        $r->content = json_encode($content, $flags);
         return $r;
     }
 

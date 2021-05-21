@@ -29,7 +29,7 @@ class queryTest extends TestCase
 	public function test_set(){ $this->assertTrue(true, "TODO"); }
 	public function test_values(){ $this->assertTrue(true, "TODO"); }
 	public function test_where(){ $this->assertTrue(true, "TODO"); }
-	public function test_rawWhere(){ $this->assertTrue(true, "TODO"); }
+	public function test_raw_where(){ $this->assertTrue(true, "TODO"); }
 	public function test_order_by(){ $this->assertTrue(true, "TODO"); }
 	public function test_limit(){ $this->assertTrue(true, "TODO"); }
 	public function test_offset(){ $this->assertTrue(true, "TODO"); }
