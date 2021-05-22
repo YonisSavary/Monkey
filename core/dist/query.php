@@ -19,8 +19,8 @@ class Query
     const DELETE    = 3;
 
     const ALLOWED_UNPROTECTED_TERMS = [
-        "NULL",
-        "NOT NULL"
+        "/^(NOT)? NULL$/i",
+        "/[0-9]+ AND [0-9]+/"
     ];
 
     // CRUD Mode
@@ -72,17 +72,18 @@ class Query
      * @param ModelParser $parser A ModelParser can be given to parse the results of `execute`
      * @param int $mode CRUD mode (self::CREATE|READ|UPDATE|DELETE)
      */
-    public function __construct(string|array $table, mixed $fields=[], int $mode=self::READ, ModelParser $parser=null)
+    public function __construct(string|array $table, string|array $fields=[], int $mode=self::READ, ModelParser $parser=null)
     {
-        if (is_array($table)){
-            $table = join(",", $table);
-        }
+        if (!is_array($fields)) $fields = [$fields];
+        if (is_array($table)) $table = join(",", $table);
+
         $this->mode = $mode;
         $this->parser = $parser;
         switch ($mode)
         {
             case self::CREATE:
-                $this->selector = "INSERT INTO $table (". join(", ", $fields) . ")";
+                $fields = ($fields == [])? "" : "(". join(", ", $fields) . ")";
+                $this->selector = "INSERT INTO $table $fields";
                 break;
             case self::READ:
                 $this->selector = "SELECT ". join(", ", $fields) . " FROM $table";
@@ -99,6 +100,52 @@ class Query
         }
         return $this;
     }
+
+    /**
+     * Constructor "Shortcuts" (more intuitive)
+     */
+    
+    /**
+     * Start a "SELECT ... FROM ..." Query
+     * You can also use the constructor with Query::READ mode
+     */
+    public static function insert(string|array $table, string|array $field=[]): Query 
+    {
+        return new Query($table, $field, Query::CREATE);
+    }
+
+
+    /**
+     * Start a "INSERT INTO ... (...)" Query
+     * You can also use the constructor with Query::READ mode
+     */
+    public static function select(string|array $table, string|array $field="*"): Query 
+    {
+        return new Query($table, $field, Query::READ);
+    }
+
+
+    /**
+     * Start a "UPDATE ..." Query
+     * You can also use the constructor with Query::READ mode
+     */
+    public static function update(string|array $table): Query 
+    {
+        return new Query($table, [], Query::UPDATE);
+    }
+
+
+    /**
+     * Start a "SELECT ... FROM ..." Query
+     * You can also use the constructor with Query::READ mode
+     */
+    public static function delete_from(string|array $table): Query 
+    {
+        return new Query($table, [], Query::READ);
+    }
+
+
+
 
 
     /**
@@ -125,12 +172,30 @@ class Query
             {
                 $values = ($values === true) ? "TRUE" : "FALSE";
             } 
-            else if (!is_numeric($values)  && !in_array($values, Query::ALLOWED_UNPROTECTED_TERMS))
+            else if (!is_numeric($values))
             {
-                $values = "'".addslashes($values)."'";
+                $skip = false;
+                foreach (Query::ALLOWED_UNPROTECTED_TERMS as $allowed)
+                {
+                    if (preg_match($allowed, $values)){
+                        $skip = true;
+                        break;
+                    }
+                }
+                if (!$skip) $values = "'".addslashes($values)."'";
             } 
         }
     }
+
+
+    public function set_parser(ModelParser $parser): Query
+    {
+        $this->parser = $parser;
+        return $this;
+    }
+
+
+
 
 
 
@@ -209,7 +274,7 @@ class Query
     public function values(...$values): Query
     {
         $this->clean_data($values);
-        array_push($this->values, "(". join(",", $values ) .")");
+        array_push($this->values, "(". join(", ", $values ) .")");
         return $this;
     }
 
