@@ -17,6 +17,16 @@ class DB {
 	static $fetch_mode = PDO::FETCH_ASSOC;
 
 
+
+    /**
+     * Is a connection created ?
+     */
+    public static function is_connected(): bool
+    {
+        return (self::$connection !== null);
+    }
+
+
     /**
      * Initialize the DB service if `db_enabled` is set to `true`
      * Create a PDO connection a store it in `self::$connection`
