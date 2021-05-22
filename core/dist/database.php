@@ -2,6 +2,7 @@
 
 namespace Monkey\Dist;
 
+use Exception;
 use Monkey\Storage\Config;
 use Monkey\Web\Trash;
 use PDO;
@@ -16,6 +17,32 @@ class DB {
 
 	static $fetch_mode = PDO::FETCH_ASSOC;
 
+
+	/**
+	 * Return true if a table exists (or false if inexistant)
+	 */
+	public static function table_exists(string $table_name)
+	{
+		return DB::field_exists($table_name, "1");
+	}
+
+
+	/**
+	 * Return true if a field exists inside a table
+	 * Return false if either the table or field doesn't exists
+	 */
+	public static function field_exists(string $table_name, string $field_name)
+	{
+		try
+		{
+			DB::query("SELECT $field_name FROM $table_name");
+			return true;
+		}
+		catch (Exception $e)
+		{
+			return false;
+		}
+	}
 
 
     /**
