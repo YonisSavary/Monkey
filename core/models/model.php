@@ -2,6 +2,7 @@
 
 namespace Monkey\Model;
 
+use Exception;
 use Kernel\Model\ModelParser;
 use Monkey\Dist\DB;
 use Monkey\Dist\Query;
@@ -56,13 +57,36 @@ abstract class Model
     }
 
 
+	/**
+	 * Get the field of a Model (SQL columns)
+	 */
     public static function get_fields(array|string $ignores=[]): array 
     {
         if (!is_array($ignores)) $ignores = [$ignores];
-        $class_name = get_called_class();
-        $model = new $class_name();
-        return array_diff($model->parser->get_model_fields(), $ignores);
+		$parser = new ModelParser(get_called_class());
+        return array_diff($parser->get_model_fields(), $ignores);
     }
+
+
+	/**
+	 * Check if your class has one or multiples fields,
+	 * If multiple fields are given, we check if all of them exists
+	 */
+	public static function has_fields(array|string $fields) : bool 
+	{
+		if (is_array($fields))
+		{
+			foreach ($fields as $field)
+			{
+				if (self::has_fields($field) === false) return false;
+			}
+			return true;
+		}
+		else 
+		{
+			return in_array($fields, self::get_fields());
+		}
+	}
 
 
     /**
@@ -127,6 +151,7 @@ abstract class Model
     {
         $model = new (get_called_class());
         $table = $model->get_table();
+
         if ($fields === null) $fields = $model->parser->get_model_fields();
         return new Query($table, $fields, $query_mode, $model->parser);
     }
@@ -134,27 +159,27 @@ abstract class Model
 
     public static function get(...$fields): Query
     {
-        return get_called_class()::build_query($fields, Query::READ);
+        return self::build_query($fields, Query::READ);
     }
 
     public static function get_all(): Query
     {
-        return get_called_class()::build_query(null, Query::READ);
+        return self::build_query(null, Query::READ);
     }
 
     public static function update(): Query
     {
-        return get_called_class()::build_query([], Query::UPDATE);
+        return self::build_query([], Query::UPDATE);
     }
 
     public static function insert(...$fields): Query
     {
-        return get_called_class()::build_query($fields, Query::CREATE);
+        return self::build_query($fields, Query::CREATE);
     }
 
     public static function delete_from(): Query
     {
-        return get_called_class()::build_query([], Query::DELETE);
+        return self::build_query([], Query::DELETE);
     }
 
 
@@ -165,6 +190,7 @@ abstract class Model
      */
     public function delete(): void
     {
+        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value', true);
         $primary = $this->primary_key;
         if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field", true);
         $this->delete_from()->where($primary, $this->$primary)->execute();
@@ -176,20 +202,22 @@ abstract class Model
      * this function base its behavior on the primary key value
      * so be aware to use it and declare your model properly !
      */
-    public function save()
+    public function save(bool $return_query = false)
     {
         $fields = $this->parser->get_model_fields();
+
+        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value', true);
+
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::fatal('Object has no $primary field', true);
-        if ($this->primary_key === "") Trash::fatal($this::class . " has no \$primary_key defined !", true);
-        $fields_str = [];
-        foreach ($fields as $f)
-        {
-            if ($f === $primary) continue;
-            array_push($fields_str, "$f='".$this->$f."'");
-        }
-        $query = "UPDATE " . $this->table . " SET ". join(",", $fields_str) . " WHERE $primary='" . $this->$primary . "';";
-        DB::query($query);
+        if (!isset($this->$primary)) Trash::fatal("Object has no $primary field value", true);
+        
+		$query = self::update();
+        foreach ($fields as $f) { $query->set($f, $this->$f); }
+
+		$query->where($primary, $this->$primary);
+
+        if ($return_query === true) return $query;
+		$query->execute();
     }
 
 
@@ -205,23 +233,28 @@ abstract class Model
      *  - colc
      * 
      * You can either give :
-     *  
+     * 
+	 * ```php
      *  [
      *      "cola"=>"somevalue",
      *      "colb"=>"anotherone",
      *      "colc"=>"again"
      *  ]
+     * ```
      * 
-     * with this method, you can give any column
+	 * with this method, you can give any column
      * you want (if we wanted to only give 'cola' and 'colb',
      * it is possible)
      * 
      * Also you can directly give
      * 
+	 * ```php
      * [ "thefirstvalue", "thesecondone", "thethirdone" ]
+     * ```
      * 
-     * with this method, you it is mandatory to give an array
+	 * **It is mandatory to give an array
      * with the same element number as the model fields (here: 3)
+	 * If the given array is non-associative**
      * 
      * 
      */
@@ -231,35 +264,26 @@ abstract class Model
         $new_object = new $model_name();
         $model_fields = $model_name::get_fields();
 
+		// Build an associative array if the one given is "value-only"
+		// This condition is true if $data is non-associative
+		if ( array_keys($data) === range(0, count($data)-1) ) 
+		{
+			if ( count($model_fields) !== count($data) ) {
+				throw new Exception("Non associative array size doesn't match the model column number ! (array=".count($model_fields).", model=".count($data).")");
+			};
+			foreach (range(0, count($data)-1) as $i)
+			{
+				$data[$model_fields[$i]] = $data[$i];
+				unset($data[$i]);
+			}
+		}
+		
+		foreach ($data as $key => $value)
+		{
+			if (in_array($key, $model_fields)) $new_object->$key = $value;
+		}
 
-        if ( array_keys($data) !== range(0, count($data) - 1) ) 
-		{
-            // Is array associative ?
-            foreach ($data as $key => $value)
-			{
-                if (in_array($key, $model_fields))
-				{
-                    $new_object->$key = $value;
-                }
-            }
-            return $new_object;
-        } 
-		else if ( count($model_fields) === count($data) )
-		{
-            // Non-associative array, is the array the same size 
-            // as the declared model fields
-            for ($i=0; $i<count($model_fields); $i++)
-			{
-                $current_field = $model_fields[$i];
-                $value = $data[$i];
-                $new_object->$current_field = $value;
-            }
-            return $new_object;
-        } 
-		else 
-		{
-            return null;
-        }
+		return $new_object;
     }
 
 
@@ -271,25 +295,15 @@ abstract class Model
      */
     public static function magic_insert(array $data) : Query 
 	{
-        $model_name = get_called_class();
-        $new_object = $model_name::magic_create($data);
+        $new_object = self::magic_create($data);
         if ($new_object === null) return null;
 
-        $fields_to_insert = $model_name::get_fields();
-        if ( array_keys($data) !== range(0, count($data) - 1) ) 
-		{
-            $fields_to_insert = array_keys($data);
-        }
+        $fields_to_insert = ( array_keys($data) !== range(0, count($data) - 1) ) ?
+		array_keys($data) : self::get_fields();
 
         $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
         $object_values = array_values($data);
-        foreach ($object_values as &$val)
-		{
-            if (preg_match("/^[0-9.]+$/", $val)) continue;
-            $val = "'".addslashes($val)."'";
-        }
-        $values = "(" .  join(", ", $object_values) .  ")";
-        array_push($query->values, $values);
+		$query->values(...$object_values);
 
         return $query;
     }

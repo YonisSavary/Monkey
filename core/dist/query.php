@@ -209,7 +209,7 @@ class Query
     public function values(...$values): Query
     {
         $this->clean_data($values);
-        array_push($this->values, "(". join(",", $values ) .")");
+        array_push($this->values, "(". join(", ", $values ) .")");
         return $this;
     }
 
