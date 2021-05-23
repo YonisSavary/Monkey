@@ -47,7 +47,7 @@ class Route
     {
         $regex = $path;
         $regex = str_replace("/", "\\/", $regex);
-        $regex = preg_replace("/\{[A-Za-z0-9_.\-]+\}/", ".+", $regex);
+        $regex = preg_replace("/\{[^\}]+\}/", ".+", $regex);
         $regex = "/^$regex$/";
         return $regex;
     }
@@ -59,7 +59,8 @@ class Route
 	 */
 	public function apply_groups(array $groups)
 	{
-		if (count($groups["path"] ?? []) > 0){
+		if (count($groups["path"] ?? []) > 0)
+		{
 			$this->path = "/". join("/", $groups["path"] ?? []) ."/". $this->path;
 			$this->path = preg_replace("/\/{2,}/", "/", $this->path);
 			$this->regex = self::get_regex($this->path);

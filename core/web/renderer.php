@@ -2,6 +2,7 @@
 
 namespace Monkey\Web;
 
+use Monkey\Framework\AppLoader;
 use Monkey\Storage\Config;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
@@ -51,7 +52,7 @@ class Renderer
      */
     public static function find(string $template_name) : mixed
     {
-        foreach (Config::get("views-directory", []) as $dir)
+        foreach (AppLoader::get_views_directories() as $dir)
         {
 			$in_dir = (strpos($template_name, "/") !== false);
             $result = self::find_recursive($dir, $template_name, $in_dir);
@@ -60,6 +61,17 @@ class Renderer
         return null;
     }
 
+
+
+    /**
+     * Test is a view exists 
+     * (Shortcut to know if find() return null)
+     */
+    public static function exists(string $template_name): bool 
+    {
+        return (self::find($template_name) !== null);
+    }
+    
     
     /**
      * Render a PHP template

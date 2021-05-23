@@ -4,7 +4,6 @@ namespace Monkey\Model;
 
 use Exception;
 use Kernel\Model\ModelParser;
-use Monkey\Dist\DB;
 use Monkey\Dist\Query;
 use Monkey\Web\Trash;
 
@@ -96,9 +95,6 @@ abstract class Model
     public function __construct()
     {
         if (is_null($this->table)) Trash::fatal("No 'protected \$table' defined for model " . $this->class, true);
-
-        // This line makes the primary_key a mandatory property
-        //if (is_null($this->primary_key)) Trash::fatal("No 'protected \$primary_key' defined for model " . $this->class);
 
         $this->parser = new ModelParser(get_called_class());
     }

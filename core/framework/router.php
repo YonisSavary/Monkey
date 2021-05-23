@@ -104,20 +104,6 @@ class Router
 
 
     /**
-     * Save the routes with the `Register` component
-	 * @deprecated 
-     */
-    public static function save() : void
-    {
-        // Array Values is here to avoid the index problem
-        // For an array like ["A", "B", "C"]
-        // don't using array_values will give this [0 => "A", 1 => "B", 2 => "C"]
-        self::$list = array_values(self::$list);
-        Register::set("routes", self::$list);
-    }
-
-
-    /**
      * Initialize the component :
      * - Create an empty routes list if inexistant
      * - Read the framework routes
@@ -279,6 +265,8 @@ class Router
     public static function route(Request $req, bool $return_response=false)
     {
         $routes_all = array_merge(self::$list, self::$temp);
+        $bad_method_route = null; // Store the latest bad method route for 405 error
+
         foreach($routes_all as $route)
         {
 			if (! $route instanceof Route ) continue;
@@ -286,7 +274,10 @@ class Router
             
 			// We can't just do the in_array condition, as we must 
 			// check methods only if the route has a method constraint
-            if (count($route->methods ?? []) > 0 && (!in_array($req->method, $route->methods))) continue;
+            if (count($route->methods ?? []) > 0 && (!in_array($req->method, $route->methods))){
+                $bad_method_route = $route;
+                continue;
+            }
 
 			$req->build_slugs($route->path);
             Request::$current = $req;
@@ -304,6 +295,10 @@ class Router
             die();
         }
 
+        if ($bad_method_route !== null) 
+        {
+            Router::display_if_response(Trash::send("405", $bad_method_route->path, $req->method));
+        }
 		// Route not found
         Router::display_if_response(Trash::send("404", $req->path));
     }

@@ -54,13 +54,13 @@ class ModelParser {
             $obj = new $model();
             foreach ($row as $field => $value)
             {
-                if (!in_array($field, $fields))
+                if (in_array($field, $fields))
                 {
-                    $obj->set_unparsed($field, $value);
+                    $obj->$field = $value;
                 } 
                 else 
                 {
-                    $obj->$field = $value;
+                    $obj->set_unparsed($field, $value);
                 }
             }
             array_push($results, $obj);

@@ -1,8 +1,10 @@
 <?php
 
 use Monkey\Framework\Router;
+use Monkey\Storage\Config;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
+use Monkey\Web\Trash;
 
 /**
  * Load Monkey and it components
@@ -18,7 +20,6 @@ use Monkey\Web\Response;
 chdir("..");
 
 require_once "core/monkey.php";
-
 
 
 /**

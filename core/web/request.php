@@ -3,7 +3,6 @@
 namespace Monkey\Web;
 
 use Exception;
-use Monkey\Framework\Router;
 
 /**
  * This class has no other purpose than store
@@ -16,8 +15,8 @@ class Request
 	// with this condition (with $mode = self::AUTO): 
 	// ($mode & self::GET) === self::POST is 
 	// is equal to :
-	// 0b00000010 & 0b00000001 === 0b00000001
-	// 0b00000010 === 0b0000001
+	// <=> 0b00000010 & 0b00000001 	=== 0b00000001
+	// <=> 0b00000010 				=== 0b0000001
 
     const GET  = 0b00000001;
     const POST = 0b00000010;
@@ -54,12 +53,10 @@ class Request
     }
 
 
-	public static function current() : Request|null
-	{
-		return self::$current;
-	}
-
-
+	/**
+	 * Build a Request object and return it,
+	 * You can also use Request::current() to retrieve the global query
+	 */
 	public static function build() : Request 
 	{
 		$req = new Request();
@@ -76,6 +73,18 @@ class Request
 		return $req;
 	}
 
+
+
+	public static function current() : Request|null
+	{
+		return self::$current;
+	}
+
+
+	public static function set_current(Request $req): void 
+	{
+		self::$current = $req;
+	}
 
 
 
@@ -133,21 +142,21 @@ class Request
         $values = [];
         foreach ($keys as $k)
         {
-			foreach ($storages as $theMode => $theStorage)
+			foreach ($storages as $the_mode => $the_storage)
 			{
-				if ( (($mode & $theMode) !== $theMode)   
-				||   (!isset($theStorage[$k]))   ){
+				if ( (($mode & $the_mode) !== $the_mode)   
+				||   (!isset($the_storage[$k]))   ){
 					// If the asked mode doesn't match or the storage doesn't hold any value
 					// We skip it
 					$values[$k] = null;
 					continue;
 				}
-				$values[$k] = ($secure) ? htmlspecialchars($theStorage[$k]) : $theStorage[$k];
+				$values[$k] = ($secure) ? htmlspecialchars($the_storage[$k]) : $the_storage[$k];
 				break;
 			}
         }
-		if ($one_param === true) $values = $values[$keys[0]] ?? null;
+		if ($one_param === true) $values = $values[$keys[0]] ?? [];
 		
-        return ($values === []) ? null : $values;
+        return $values;
     }
 }

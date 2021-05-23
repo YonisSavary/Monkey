@@ -2,6 +2,7 @@
 
 namespace Monkey\Web;
 
+use Closure;
 use Monkey\Storage\Config;
 use Monkey\Framework\Router;
 
@@ -16,24 +17,17 @@ class Trash
 {
     static $error_callbacks = [];
 
-    public static function on(string $error, callable|string $callback){
-        self::$error_callbacks[$error] = $callback;
+    public static function on(string $error_code, string|Closure|array $callback): void
+    {
+        self::$error_callbacks[$error_code] = $callback;
     }
 
-    public static function send(string $error, $arg=null): Response
+    public static function send(string $error, ...$arg): Response
 	{
-        if (isset(self::$error_callbacks[$error]))
-		{
-            $callback = self::$error_callbacks[$error];
-            if (is_string($callback))
-			{
-                return Router::execute_route_callback($callback, $arg);
-            } 
-            else
-            {
-                return $callback($arg);
-            }
-        }
+        $callback = self::$error_callbacks[$error] ?? null;
+
+        if (is_callable($callback)) return $callback(...$arg);
+        return Router::execute_route_callback($callback, $arg);
     }
 
     /**
@@ -51,31 +45,20 @@ class Trash
 		}
 		return $res;
     }
+
+
+    public static function get_error_page(string $error_title, string $error_message)
+    {
+        $safe_display = Config::get("safe_error_display", false);
+
+        $message = "<h1>$error_title</h1>";
+        $message .= ($safe_display === false)? "<p>$error_message</p>" : ""; 
+    
+        return Response::html($message);
+    }
 }
 
 
-
-
-
-Trash::on("fatal", function (string $error): Response
-{
-    $message = "<h1>Error 500</h1>";
-    if (Config::get("safe_error_display", false) !== true)
-	{
-        $message .= "Fatal Error In Monkey : $error";
-    } 
-
-    return Response::html($message);
-});
-
-
-Trash::on("404", function ($request_path) : Response
-{
-    $message = "<h1>Error 404</h1>Page Not found !<br>" ;
-    if (Config::get("safe_error_display", false) !== true)
-	{
-        $message .= "\"".$request_path."\" route not found";
-    }     
-
-	return Response::html($message);
-});
+Trash::on("fatal",  fn($message)        => Trash::get_error_page("Error 500 : Internal Error !", "Internal Error from Monkey : $message"));
+Trash::on("404",    fn($request_path)   => Trash::get_error_page("Error 404 : Page Not found !", "\"".$request_path."\" route not found"));
+Trash::on("405",    fn($request_path, $method)   => Trash::get_error_page("Error 403 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));

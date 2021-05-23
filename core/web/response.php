@@ -11,7 +11,7 @@ class Response
     public $content = "";
 
     /**
-     * @param string $content Content to display
+     * @param string $content HTML/String content of the query
      */
     public static function html(string $content): Response
     {
@@ -22,13 +22,9 @@ class Response
     
     
     /**
-     * This function display objects in JSON, but also send
-     * a `application/json` header for browsers like Mozilla
-     * which have a special layout for JSON content
-     * 
      * @param mixed $content Content to adapt in json and display
      */
-    public static function json(mixed $content, int $flags=JSON_PRETTY_PRINT): Response
+    public static function json(mixed $content, int $flags=0): Response
     {
         $r = new Response();
         $r->header = "Content-Type: application/json";
@@ -55,7 +51,7 @@ class Response
      * @param bool $delete Do we delete the file after it was sent
      * @param bool $secure Ignore the function if the path includes some forbidden terms
      */
-    public static function send_file(string $path, bool $delete=false, bool $secure=false)
+    public static function send_file(string $path, bool $secure=false)
     {
         if ($secure === true)
 		{
@@ -76,7 +72,7 @@ class Response
         ob_clean();
         flush();
         readfile($path);
-        if ($delete) unlink($path);
+        
         die();
     }
 }

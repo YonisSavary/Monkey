@@ -132,54 +132,6 @@ class DB {
     }
 
 
-    /**
-     * Link to PDO::prepare function
-     * 
-     * @param string $request Request with bindings
-	 * @deprecated
-     */
-    public static function prepare(string $request) : void
-    {
-        self::check_connection();
-        self::$connection->prepare($request);
-    }
-
-
-    /**
-     * Link to PDO::bindParam
-     * 
-     * @param string $bind Bind Name
-     * @param mixed $value Bind value
-	 * @deprecated
-     */
-    public static function bind(string $bind, mixed $value) : void
-    {
-        self::check_connection();
-        self::$connection->bindParam($bind, $value);
-    }
-
-
-    /**
-     * Execute the PDO prepared request and return the results
-     * or an empty array
-	 * 
-	 * @deprecated
-     */
-    public static function execute() : array
-    {
-        self::check_connection();
-        $statement = self::$connection->execute();
-        self::$last_insert_id = self::$connection->lastInsertId() ?? null;
-        if ($statement->rowCount() > 0)
-        {
-            return $statement->fetchAll();
-        } 
-        else
-        {
-            return [];
-        }
-    }
-
 
 
     /**

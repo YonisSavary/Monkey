@@ -11,7 +11,7 @@ function url(string $file) : string
 }
 
 /**
- * @deprecated use render() now
+ * @deprecated use render() now, this function will be removed soon
  */
 function include_file(string $template_name)
 {

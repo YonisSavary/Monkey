@@ -20,6 +20,8 @@ use Monkey\Storage\Register;
 class AppLoader
 {
     const CACHE_FILE_NAME = "cached_apploader";
+    const VIEWS_DIRECTORY_NAME = "views";
+    const CONFIG_FILE_NAME = "monkey.json";
 	const AUTOLOAD_DIRECTORIES_NAMES =  [
 		"models", 
 		"controllers", 
@@ -33,6 +35,29 @@ class AppLoader
     public static $config_paths = [];
     public static $views_directories = [];
     public static $autoload_list = [];
+    public static $loaded_directories = false;
+
+
+    public static function get_app_directories()
+    {
+        return self::$app_directories;
+    }
+
+    public static function get_config_paths()
+    {
+        return self::$config_paths;
+    }
+
+    public static function get_views_directories()
+    {
+        return self::$views_directories;
+    }
+
+    public static function get_autoload_list()
+    {
+        return self::$autoload_list;
+    }
+
 
 
 	/**
@@ -45,6 +70,7 @@ class AppLoader
 	{
         if (!is_dir($path)) return false;
         if (!str_ends_with($path, "/")) $path .= "/";
+
         $results = [];
         foreach (scandir($path) as $file)
         {
@@ -56,10 +82,11 @@ class AppLoader
             }
             else 
             {
-                if (substr($file, -4) !== ".php") continue;
+                if (!str_ends_with($file, ".php")) continue;
                 array_push($results, $file_path);
             }
         }
+
         return $results;
     }
 
@@ -76,13 +103,14 @@ class AppLoader
     {
         if (!is_dir($path)) return false;
         if (substr($path, -1) != "/") $path .= "/";
+
         $results = [];
         foreach (scandir($path) as $file)
         {
             $file_path = $path . $file;
             if (is_dir($file_path))
             {
-                if ($file === "views")
+                if ($file === AppLoader::VIEWS_DIRECTORY_NAME)
                 {
                     array_push(AppLoader::$views_directories, $file_path);
                 } 
@@ -91,11 +119,12 @@ class AppLoader
                     $results = array_merge($results, AppLoader::explore_full_dir($file_path));
                 }
             }
-            else if ($file === "monkey.json")
+            else if ($file === AppLoader::CONFIG_FILE_NAME)
             {
 				array_push(AppLoader::$config_paths, $file_path);
             }
         }
+
         return $results;
     }
 
@@ -104,15 +133,30 @@ class AppLoader
     /**
      * Loads the applications in AppLoader::$app_directories
      */
-    public static function load_applications() : void
+    public static function load_applications() : bool
     {
+        if (self::$loaded_directories === true) return false;
         $to_loads = [];
         foreach(AppLoader::$app_directories as $dir)
         {
             if (!str_ends_with("/", $dir)) $dir .= "/";
             $to_loads = array_merge($to_loads, AppLoader::load_application($dir));
         }
-        AppLoader::$autoload_list = $to_loads;      
+        AppLoader::$autoload_list = $to_loads;    
+        self::write_to_register();
+        self::$loaded_directories = true;
+        return true;
+    }
+
+
+
+    /**
+     * Write the current AppLoader configuration 
+     * to the register (only if the configuration
+     * allow it)
+     */
+    public static function write_to_register()
+    {
         if (Config::get(AppLoader::CACHE_FILE_NAME) === true)
         {
             Register::set(AppLoader::CACHE_FILE_NAME, [
@@ -121,6 +165,42 @@ class AppLoader
                 "config_paths" => AppLoader::$config_paths
             ]);
         }  
+    }
+
+
+    /**
+     * Read the AppLoader config from the register
+     * (only if the configuration allow it)
+     */
+    public static function read_from_register()
+    {
+		// If "cached_apploader" is true
+		// And "cached_apploader.json" exists 
+        if ( Config::get(AppLoader::CACHE_FILE_NAME)    === true 
+        &&   Register::get(AppLoader::CACHE_FILE_NAME)  !== null )
+        {
+            $data = Register::get(AppLoader::CACHE_FILE_NAME);
+            AppLoader::$views_directories   = $data["views_directories"];
+            AppLoader::$autoload_list       = $data["autoload_list"];
+            AppLoader::$config_paths        = $data["config_paths"];
+            self::$loaded_directories = true;
+        } 
+    }
+
+
+    /**
+     * Execute the autoload callback 
+     * for each AppLoader::$autoload_list
+     */
+    public static function do_autoload()
+    {
+		spl_autoload_register(function()
+        {
+            foreach (AppLoader::$autoload_list as $dir)
+            {
+                include($dir);
+            }
+        });
     }
 
 
@@ -137,32 +217,11 @@ class AppLoader
         $cfg_app = Config::get("app_directories", []);
         if (is_string($cfg_app)) $cfg_app = [$cfg_app];
 
-        AppLoader::$app_directories = $cfg_app;
+        self::$app_directories = $cfg_app;
 
-		// If "cached_apploader" is true
-		// And "cached_apploader.json" exists 
-        if ( Config::get(AppLoader::CACHE_FILE_NAME)    === true 
-        &&   Register::get(AppLoader::CACHE_FILE_NAME)  !== null )
-        {
-            $data = Register::get(AppLoader::CACHE_FILE_NAME);
-            AppLoader::$views_directories   = $data["views_directories"];
-            AppLoader::$autoload_list       = $data["autoload_list"];
-            AppLoader::$config_paths        = $data["config_paths"];
-        } 
-        else
-        {
-            AppLoader::load_applications();
-        }
-
-        Config::set("views-directory", AppLoader::$views_directories);
-
-		spl_autoload_register(function()
-        {
-            foreach (AppLoader::$autoload_list as $dir)
-            {
-                include($dir);
-            }
-        });
+        self::read_from_register();
+        self::load_applications();        
+        self::do_autoload();
 
 		Config::read_file(AppLoader::$config_paths);
     }

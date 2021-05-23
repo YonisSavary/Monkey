@@ -11,9 +11,9 @@ use Monkey\Web\Trash;
 class Config
 {
     /**
-     * Read a file if it exists
-     * If an error happend while reading json, Trash will handle a fatal error
-     * Merge the read json and the already existing configuration
+     * - Read a file if it exists
+     * - If an error happend while reading json, Trash will handle a fatal error
+     * - Merge the read json and the already existing configuration
 	 * 
 	 * @param string|array $path A file Path or an array of
      */
@@ -44,19 +44,6 @@ class Config
     }
 
 
-    /**
-     * Save the current configuration in monkey.json
-     * 
-     * @deprecated This function save the whole configuration in `./monkey.json` 
-     * But now, configuration can be set in multiples files
-     */
-    public static function save() : void
-    {
-        $config = $GLOBALS["monkey"]["config"];
-        file_put_contents("monkey.json", json_encode($config, JSON_PRETTY_PRINT));
-        self::init();
-    }
-
 
     /**
      * Check if a key exists in the config
@@ -66,28 +53,15 @@ class Config
      */
     public static function exists(string|array $key) : bool
     {
-		if (is_array($key)){
-			$exists = true;
-			foreach ($key as $k) $exists &= self::exists($k);
-			return $exists;
+		if (is_array($key))
+        {
+			foreach ($key as $k)
+            {
+                if (!self::exists($k)) return false;
+            } 
+			return true;
 		}
         return isset($GLOBALS["monkey"]["config"][$key]);
-    }
-
-
-    /**
-     * Check if an array of keys exists at the same time
-     * 
-     * @param array $keys Keys list to check
-     * @return bool Do the given keys exists at the same time ?
-	 * 
-	 * @deprecated Config::exists Can now take arrays !
-     */
-    public static function multiple_exists(array $keys) : bool
-    {
-        $exists = true;
-        foreach ($keys as $key) $exists &= self::exists($key);
-        return $exists;
     }
 
 
