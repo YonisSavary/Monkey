@@ -119,6 +119,8 @@ class ModelFetcher
         $class_name = self::get_camel_case_of($table_name);
         return "<?php 
 
+namespace Models;
+
 use Monkey\Model\Model;
 
 class $class_name extends Model 

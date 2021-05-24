@@ -47,7 +47,7 @@ class Trash
     }
 
 
-    public static function get_error_page(string $error_title, string $error_message)
+    public static function get_error_page(string $error_title, string $error_message="No error message specified")
     {
         $safe_display = Config::get("safe_error_display", false);
 
@@ -59,6 +59,17 @@ class Trash
 }
 
 
-Trash::on("fatal",  fn($message)        => Trash::get_error_page("Error 500 : Internal Error !", "Internal Error from Monkey : $message"));
-Trash::on("404",    fn($request_path)   => Trash::get_error_page("Error 404 : Page Not found !", "\"".$request_path."\" route not found"));
-Trash::on("405",    fn($request_path, $method)   => Trash::get_error_page("Error 403 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));
+Trash::on("fatal",  
+fn($message)=> Trash::get_error_page("Error 500 : Internal Error !", "Internal Error from Monkey : $message"));
+
+Trash::on("400",    
+fn($other_error)=> Trash::get_error_page("Error 404 : Bad Query", "Bad parameters or Syntax Error : $other_error"));
+
+Trash::on("401",    
+fn()=> Trash::get_error_page("Error 401 : Unauthorized"));
+
+Trash::on("404",    
+fn($request_path)=> Trash::get_error_page("Error 404 : Page Not found !", "\"".$request_path."\" route not found"));
+
+Trash::on("405",    
+fn($request_path, $method)=> Trash::get_error_page("Error 403 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));

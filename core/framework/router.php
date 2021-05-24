@@ -3,11 +3,13 @@
 namespace Monkey\Framework;
 
 use Closure;
+use Exception;
 use Monkey\Storage\Register;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
 use Monkey\Framework\Route;
+use TypeError;
 
 class Router 
 {
@@ -209,7 +211,11 @@ class Router
      */
     public static function execute_route_callback(string|Closure|array $to_execute, mixed $custom_args=null) : mixed
     {
-		if (is_callable($to_execute)) return $to_execute(Request::current());
+        $current_request = Request::current();
+        $slugs = $custom_args ?? array_values($current_request->slugs);
+
+
+		if (is_callable($to_execute)) return $to_execute($current_request, ...$slugs);
         // Discompose the `callback` attribute
 		$callback_parts = (is_string($to_execute))?  explode("->", $to_execute) : $to_execute;
 		$controller_class = $callback_parts[0];
@@ -221,7 +227,7 @@ class Router
         $controller = new $controller_class();
 		// Execute the controller callback
         if (!method_exists($controller, $method)) return Trash::fatal("\"$controller_class->$method\" method does not exists !");
-        return $controller->$method( $custom_args ?? Request::current());
+        return $controller->$method($current_request, ...$slugs);
     }
 
 
@@ -266,6 +272,8 @@ class Router
     {
         $routes_all = array_merge(self::$list, self::$temp);
         $bad_method_route = null; // Store the latest bad method route for 405 error
+        $type_error_route = null;
+        $type_error_message = "";
 
         foreach($routes_all as $route)
         {
@@ -288,16 +296,25 @@ class Router
 				self::execute_middleware($middleware_name);
 			}
 
-			$response = self::execute_route_callback($route->callback);
-			if ($return_response) return $response;
-            self::display_if_response($response);
-			
-            die();
+            try 
+            {
+                $response = self::execute_route_callback($route->callback);
+                if ($return_response) return $response;
+                self::display_if_response($response); 
+                die();            
+            }
+            catch (TypeError $e)
+            {
+                $type_error_route = $route;
+                $type_error_message = $e->getMessage();
+            }
         }
 
-        if ($bad_method_route !== null) 
-        {
+        if ($bad_method_route !== null) {
             Router::display_if_response(Trash::send("405", $bad_method_route->path, $req->method));
+        }
+        if ($type_error_route !== null) {
+            Router::display_if_response(Trash::send("400", $type_error_message));
         }
 		// Route not found
         Router::display_if_response(Trash::send("404", $req->path));

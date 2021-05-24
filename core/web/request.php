@@ -87,6 +87,22 @@ class Request
 	}
 
 
+	public static function get_slug_right_type(mixed $value) 
+	{
+		if (in_array(strtolower($value), ["true", "false"]))
+		{
+			return (strtolower($value) === "true")? true : false;
+		} 
+		else if (preg_match("/^[0-9]+$/", $value)) 
+		{
+			return intval($value);
+		} 
+		else if (preg_match("/^[0-9]+\.[0-9]+$/", $value)) 
+		{
+			return floatval($value);
+		} 
+		return $value;
+	}
 
     /**
      * Given a route path, 
@@ -98,6 +114,7 @@ class Request
      */ 
     public function build_slugs(string $route_path, bool $return=false)
     {
+
         $route_parts = explode("/", $route_path);
         $request_parts = explode("/", $this->path);
         $slugs = [];
@@ -108,7 +125,7 @@ class Request
             if (!preg_match("/\{.+\}/", $pattern)) continue;
             $slug_name = preg_replace("/[\{\}]/", "", $pattern);
             $slug_value = $request_parts[$i];
-            $slugs[$slug_name] = $slug_value;
+            $slugs[$slug_name] = self::get_slug_right_type($slug_value);
         }
 		
         if ($return === true) return $slugs;

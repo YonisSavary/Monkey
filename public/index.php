@@ -1,5 +1,6 @@
 <?php
 
+use Middlewares\AuthMiddleware;
 use Monkey\Framework\Router;
 use Monkey\Storage\Config;
 use Monkey\Web\Request;
@@ -15,11 +16,8 @@ use Monkey\Web\Trash;
  * allow access to local files)
  */
 
-// Don't put this line in core/monkey.php, as we need it for 
-// Phpunit tests, you don't want to change directory in your tests
-chdir("..");
 
-require_once "core/monkey.php";
+require_once "../core/monkey.php";
 
 
 /**
