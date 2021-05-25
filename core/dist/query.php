@@ -371,7 +371,7 @@ class Query
     }
 
     private function build_wheres(){
-        return $this->build_part("WHERE ", ", ", $this->where);
+        return $this->build_part("WHERE ", " ", $this->where);
     }
 
     private function build_set(){
