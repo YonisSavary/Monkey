@@ -10,13 +10,6 @@ function url(string $file) : string
     return str_replace("//", "/", $prefix."/".$file);
 }
 
-/**
- * @deprecated use render() now, this function will be removed soon
- */
-function include_file(string $template_name)
-{
-    render($template_name);
-}
 
 /**
  * Render another template where this function is called
