@@ -3,6 +3,7 @@
 namespace Monkey\Framework;
 
 use Closure;
+use Error;
 use Exception;
 use Monkey\Storage\Register;
 use Monkey\Web\Request;
@@ -223,10 +224,10 @@ class Router
 		
         // Create the controller and execute the route callback
         if (!class_exists($controller_class, false)) $controller_class = "Controllers\\".$controller_class;
-        if (!class_exists($controller_class, true)) return Trash::fatal("\"$controller_class\" class does not exists !");
+        if (!class_exists($controller_class, true)) Trash::fatal("\"$controller_class\" class does not exists !");
         $controller = new $controller_class();
 		// Execute the controller callback
-        if (!method_exists($controller, $method)) return Trash::fatal("\"$controller_class->$method\" method does not exists !");
+        if (!method_exists($controller, $method)) Trash::fatal("\"$controller_class->$method\" method does not exists !");
         return $controller->$method($current_request, ...$slugs);
     }
 
@@ -245,10 +246,10 @@ class Router
 		else 
 		{
 			if (!class_exists($middleware_name, false)) $middleware_name = "Middlewares\\".$middleware_name;
-			if (!class_exists($middleware_name, true )) return Trash::fatal("$middleware_name does not exists!");
+			if (!class_exists($middleware_name, true )) Trash::fatal("$middleware_name does not exists!");
 			$middleware = new $middleware_name();
 	
-			if (!method_exists($middleware, "handle")) return Trash::fatal("$middleware_name does not have a 'handle' function");
+			if (!method_exists($middleware, "handle")) Trash::fatal("$middleware_name does not have a 'handle' function");
 			$res = $middleware->handle(Request::current());
 		}
 	

@@ -78,7 +78,7 @@ class DB {
     public static function check_connection() : bool
     {
         if (self::$connection === null){
-			Trash::fatal("You tried to use a Function from the DB component but db.enabled is set to false :(", true);
+			Trash::fatal("You tried to use a Function from the DB component but db.enabled is set to false :(");
 			return false;
 		} 
 		return true;
@@ -118,7 +118,7 @@ class DB {
         } 
         catch (PDOException $e)
         {
-            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) <br>PDO Exception : ". $e->getMessage(), true);
+            Trash::fatal("Can't initialize PDO (Usually Bad DB Credentials) <br>PDO Exception : ". $e->getMessage());
         }
         return $connection;
     }

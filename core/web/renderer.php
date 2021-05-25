@@ -126,7 +126,7 @@ class Renderer
         }
         
         $monkey_renderer_path = self::find($monkey_renderer_template_name);
-        if ($monkey_renderer_path === null) return Trash::fatal($monkey_renderer_template_name . " template does not exists !");
+        if ($monkey_renderer_path === null) Trash::fatal($monkey_renderer_template_name . " template does not exists !");
         
         ob_start();
         require_once $monkey_renderer_path;

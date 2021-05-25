@@ -95,7 +95,7 @@ class Query
                 $this->selector = "DELETE FROM $table";
                 break;
             default:
-                Trash::fatal("Bad Query Mode !", true);
+                Trash::fatal("Bad Query Mode !");
                 break;
         }
         return $this;
@@ -452,7 +452,7 @@ class Query
                 $this->build_delete();
                 break;
             default:
-                Trash::fatal("Bad Query Mode !", true);
+                Trash::fatal("Bad Query Mode !");
                 break;
         }
         $this->sql_parts = array_merge([$this->selector], $this->sql_parts);

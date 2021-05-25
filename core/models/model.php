@@ -186,9 +186,9 @@ abstract class Model
      */
     public function delete(): void
     {
-        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value', true);
+        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value');
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field", true);
+        if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
         $this->delete_from()->where($primary, $this->$primary)->execute();
     }
 
@@ -202,10 +202,10 @@ abstract class Model
     {
         $fields = $this->parser->get_model_fields();
 
-        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value', true);
+        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value');
 
         $primary = $this->primary_key;
-        if (!isset($this->$primary)) Trash::fatal("Object has no $primary field value", true);
+        if (!isset($this->$primary)) Trash::fatal("Object has no $primary field value");
         
 		$query = self::update();
         foreach ($fields as $f) { $query->set($f, $this->$f); }

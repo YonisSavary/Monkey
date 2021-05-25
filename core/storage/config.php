@@ -10,6 +10,7 @@ use Monkey\Web\Trash;
  */
 class Config
 {
+    static $config_ref = null;
     /**
      * - Read a file if it exists
      * - If an error happend while reading json, Trash will handle a fatal error
@@ -33,7 +34,7 @@ class Config
 
         $last_error = json_last_error();
         if ($last_error !== JSON_ERROR_NONE){
-            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !", true);
+            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !");
         }
 
         foreach ($content as $key => $value){
@@ -98,9 +99,9 @@ class Config
     public static function init()
     {
         $GLOBALS["monkey"]["config"] = [];
-        $read = self::read_file("./monkey.json");
-        if ($read === false){
-            Trash::fatal("monkey.json does not exists !", true);
+        if (self::read_file("./monkey.json") === false){
+            Trash::fatal("monkey.json does not exists !");
         }
+        self::$config_ref = &$GLOBALS["monkey"]["config"];
     }
 }
