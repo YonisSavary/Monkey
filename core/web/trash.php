@@ -63,7 +63,7 @@ Trash::on("fatal",
 fn($message)=> Trash::get_error_page("Error 500 : Internal Error !", "Internal Error from Monkey : $message"));
 
 Trash::on("400",    
-fn($other_error)=> Trash::get_error_page("Error 404 : Bad Query", "Bad parameters or Syntax Error : $other_error"));
+fn($other_error)=> Trash::get_error_page("Error 400 : Fatal Error", "Bad parameters or Syntax Error : $other_error"));
 
 Trash::on("401",    
 fn()=> Trash::get_error_page("Error 401 : Unauthorized"));

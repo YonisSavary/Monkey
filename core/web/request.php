@@ -143,7 +143,7 @@ class Request
      * @param array|string $keys Keys to retrieve
      * @param int $mode self::[AUTO,GET,POST]
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
-     * @return mixed Values from the request data
+     * @return mixed Values from the request data, null if nothing was found (so you can use the ?? operator for default value)
      */
     public function retrieve(array|string $keys, int $mode=self::AUTO, bool $secure=true) : mixed
     {
@@ -173,7 +173,7 @@ class Request
 			}
         }
 		if ($one_param === true) $values = $values[$keys[0]] ?? [];
-		
+		if ($values === []) return null;
         return $values;
     }
 }

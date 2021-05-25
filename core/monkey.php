@@ -18,7 +18,7 @@
  * load every other framework files 
  */
 
-chdir("..");
+if (str_ends_with(getcwd(), "public")) chdir("..");
 require_once "core/framework/app_loader.php";
 
 $basefiles = Monkey\Framework\AppLoader::explore_full_dir("./core");

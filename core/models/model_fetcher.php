@@ -133,7 +133,7 @@ class $class_name extends Model
         ";
     }
 
-    public static function fetch(string $table_name, string $app_directory=null)
+    public static function fetch(string $table_name, string $app_directory=null, bool $force_overwrite=false)
     {
         $model_directory = self::get_model_directory($app_directory);
 
@@ -143,7 +143,7 @@ class $class_name extends Model
         $model_name = ModelFetcher::get_camel_case_of($table_name);
         $path = $model_directory . $model_name . ".php";
 
-        self::ask_for_overwriting_file($path);
+        if (!$force_overwrite) self::ask_for_overwriting_file($path);
 
         $description = self::get_table_description($table_name);
 
