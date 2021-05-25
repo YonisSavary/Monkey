@@ -1,24 +1,28 @@
 {
-    "register_store" : "./cache",
-	"app_directories" : "./app",
-	"cached_apploader" : false,
+    "register_store": "./cache",
+	"app_directories": "./app",
+	"app_url_prefix": "/assets",
+	"cached_apploader": false,
+	"safe_error_display": false,
 
-	"db_enabled" : false,
-	"db_driver" : "mysql",
-	"db_host" : "127.0.0.1",
-	"db_port" : "3306",
-	"db_name" : "dbname",
-	"db_user" : "root",
-	"db_pass" : "secret",
-	"db_file" : null,
-
-	"app_prefix" : "/assets",
+	"db": {
+		"enabled": false,
+		"driver": "mysql",
+		"host": "127.0.0.1",
+		"port": "3306",
+		"name": "dbname",
+		"user": "root",
+		"pass": "secret",
+		"file": null
+	},
 	
-	"auth_enabled" : false,
-	"auth_model" : "Users",
-	"auth_login_field" : "login",
-	"auth_pass_field" : "pass",
-	"auth_salt_field": null,
-
-	"safe_error_display" : false
+	"auth": {
+		"enabled": false,
+		"model": "Users",
+		"login_field": "login",
+		"pass_field": "pass",
+		"salt_field": null,
+		"hop_duration": 300,
+		"duration": 3600
+	}
 }

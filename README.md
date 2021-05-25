@@ -141,7 +141,7 @@ Note : The Configuration is stored in `$GLOBALS["monkey"]["config"]`
 | `db_user` | Database login |  |
 | `db_pass` | Database user password |  |
 | `db_file` | Database file-name (only for sqlite driver) |  |
-| `app_prefix` | URL prefix (pretty useful for assets files url) |  |
+| `app_url_prefix` | URL prefix (pretty useful for assets files url) |  |
 
 
 
@@ -669,7 +669,7 @@ while making your templates
 
 ```php
 // Add your app url prefix to the first parameter
-// "app_prefix" in monkey.json
+// "app_url_prefix" in monkey.json
 <?= url("assets/someExample/app.css") ?>
 
 // Can render a template inside another

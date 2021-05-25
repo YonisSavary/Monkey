@@ -36,9 +36,9 @@ class Auth
     public static function init()
     {
         if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
-        if (Config::get("auth_enabled") !== true) return null;
+        if (Config::get("auth")["enabled"] !== true) return null;
 
-        $model_name = Config::get("auth_model");
+        $model_name = Config::get("auth")["model"];
         if (!class_exists($model_name, false)) $model_name = "Models\\".$model_name;
         if (!class_exists($model_name, true)) Trash::fatal("$model_name Model does not exists !", true);
 
@@ -47,10 +47,10 @@ class Auth
         $fields = $parser->get_model_fields();
 
 
-        $login_field = Config::get("auth_login_field");
+        $login_field = Config::get("auth")["login_field"];
         if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $login_field public field", true);
 
-        $pass_field = Config::get("auth_pass_field");
+        $pass_field = Config::get("auth")["pass_field"];
         if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $pass_field public field", true);
 
         self::$model = $model;
@@ -66,10 +66,10 @@ class Auth
             } 
             else 
             {
-                $_SESSION["m_auth_duration"] +=  Config::get("auth_hop_duration", 300);
-                if ($_SESSION["m_auth_duration"] > Config::get("auth_duration"))
+                $_SESSION["m_auth_duration"] +=  Config::get("auth")["hop_duration"] ??  300;
+                if ($_SESSION["m_auth_duration"] > Config::get("auth")["duration"] ?? 3600)
                 {
-                    $_SESSION["m_auth_duration"] =  Config::get("auth_duration", 3600);
+                    $_SESSION["m_auth_duration"] =  Config::get("auth")["duration"] ?? 3600;
                 }
             }
         }
@@ -90,7 +90,7 @@ class Auth
         $user = $user[0];
         $pfield = self::$pass_field;
         
-        $salt_field = Config::get("auth_salt_field");
+        $salt_field = Config::get("auth")["salt_field"];
         if ( (!is_null($salt_field)) &&  isset($user->$salt_field)){
             $password .= $user->$salt_field;
         }
@@ -142,7 +142,7 @@ class Auth
         $_SESSION["m_auth_user"] = $user;
         $_SESSION["m_auth_logged"] = true;
         $_SESSION["m_auth_token"] = bin2hex(random_bytes(32));
-        $_SESSION["m_auth_duration"] =  Config::get("auth_duration", 3600);
+        $_SESSION["m_auth_duration"] =  Config::get("auth")["duration"] ?? 3600;
     }
 
 

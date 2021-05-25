@@ -6,7 +6,7 @@ use Monkey\Web\Renderer;
 
 function url(string $file) : string
 {
-    $prefix = Config::get("app_prefix", "/");
+    $prefix = Config::get("app_url_prefix", "/");
     return str_replace("//", "/", $prefix."/".$file);
 }
 

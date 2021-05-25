@@ -55,15 +55,15 @@ class DB {
 
 
     /**
-     * Initialize the DB service if `db_enabled` is set to `true`
+     * Initialize the DB service if `db.enabled` is set to `true`
      * Create a PDO connection a store it in `self::$connection`
      * 
      * @return bool Was the connection successful ?
      */
     public static function init(string $custom_dsn=null, bool $force_init=false) : bool
     {
-        if (Config::get("db_enabled") !== true && !$force_init) return false;
         self::load_configuration();
+        if (self::$configuration["enabled"] !== true && !$force_init) return false;
 	    self::$connection = self::get_connection(self::$configuration["user"], self::$configuration["pass"], $custom_dsn);
 
         return true;
@@ -78,7 +78,7 @@ class DB {
     public static function check_connection() : bool
     {
         if (self::$connection === null){
-			Trash::fatal("You tried to use a Function from the DB component but db_enabled is set to false :(", true);
+			Trash::fatal("You tried to use a Function from the DB component but db.enabled is set to false :(", true);
 			return false;
 		} 
 		return true;
@@ -87,15 +87,7 @@ class DB {
 
     public static function load_configuration() : void
     {
-        self::$configuration = [
-            "driver" => Config::get("db_driver"),
-            "host"   => Config::get("db_host"),
-            "port"   => Config::get("db_port"),
-            "name"   => Config::get("db_name"),
-            "user"   => Config::get("db_user"),
-            "pass"   => Config::get("db_pass"),
-			"file"	 => Config::get("db_file")
-        ];
+        self::$configuration = Config::get("db");
     }
 
     public static function get_dsn() : string

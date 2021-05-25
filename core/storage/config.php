@@ -29,7 +29,7 @@ class Config
 
         if (!file_exists($path)) return false;
         
-        $content = (array) json_decode(file_get_contents($path));
+        $content = json_decode(file_get_contents($path), true);
 
         $last_error = json_last_error();
         if ($last_error !== JSON_ERROR_NONE){
