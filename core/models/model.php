@@ -19,11 +19,11 @@ use Monkey\Web\Trash;
 abstract class Model
 {
     // Table used by the model
-    const table = null;
+    const table = "";
     // Primary key field name, pretty important, it is used by example 
     // by the delete function which use its values to delete from the model table
     const primary_key = "";
-
+    const insertable = "";
 
 
     /**
@@ -40,9 +40,13 @@ abstract class Model
      * Pretty explicit, get the primary key field name,
      * as $primary_key is protected, a getter is necessary
      */
-    public function get_primary_key() : string
+    public static function get_primary_key() : string
     { 
-        return (get_called_class())::primary_key; 
+        $class = get_called_class();
+        if ($class::primary_key == ""){
+            Trash::fatal("$class has no primary_key constant !");
+        }
+        return $class::primary_key;
     }
 
 
@@ -56,6 +60,18 @@ abstract class Model
         return array_diff($fields, $ignores);
     }
 
+    public static function get_insertable() : array 
+    {
+        if ((get_called_class())::insertable === "") return (get_called_class())::get_fields();
+        return (get_called_class())::insertable;
+    }
+
+    public static function get_insertable_fields(array|string $ignores=[]): array 
+    {
+        if (!is_array($ignores)) $ignores = [$ignores];
+		$model = new (get_called_class());
+        return array_diff($model->insertable ?? [], $ignores);
+    }
 
 	/**
 	 * Check if your class has one or multiples fields,
@@ -84,7 +100,7 @@ abstract class Model
      */
     public function __construct()
     {
-        if ($this::table === null) Trash::fatal("No 'protected \$table' defined for model " . $this::class, true);
+        if ($this::table === "") Trash::fatal("No 'protected \$table' defined for model " . $this::class, true);
     }
 
 
@@ -159,7 +175,7 @@ abstract class Model
      */
     public function delete(bool $return_query = false)
     {
-        if ($this::primary_key === null) Trash::fatal('Object has no $primary_key field value');
+        if ($this::primary_key === "") Trash::fatal('Object has no $primary_key field value');
         $primary = $this::primary_key;
         if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
         $query = $this::delete_from()->where($primary, $this->$primary);
@@ -177,7 +193,7 @@ abstract class Model
     {
         $fields = $this::get_fields();
 
-        if ($this::primary_key === null) Trash::fatal('Object has no $primary_key field value');
+        if ($this::primary_key === "") Trash::fatal('Object has no $primary_key field value');
         $primary = $this::primary_key;
 
         if (!isset($this->$primary)) Trash::fatal("Object has no $primary field value");
