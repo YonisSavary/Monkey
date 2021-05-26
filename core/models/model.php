@@ -66,6 +66,12 @@ abstract class Model
         return array_diff($parser->get_model_fields(), $ignores);
     }
 
+    public static function get_insertable_fields(array|string $ignores=[]): array 
+    {
+        if (!is_array($ignores)) $ignores = [$ignores];
+		$model = new (get_called_class());
+        return array_diff($model->insertable ?? [], $ignores);
+    }
 
 	/**
 	 * Check if your class has one or multiples fields,
