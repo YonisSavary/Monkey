@@ -24,16 +24,6 @@ class ModelParser {
     }
 
 
-    /**
-     * Pretty useful function, its give you the public fields
-     * of a model (so its SQL fields by definition)
-     * Return an array of fields names
-     */
-    public function get_model_fields() : array
-    {
-        return array_keys(get_class_vars($this->model));
-    }
-
 
     /**
      * This function can parse PDO results to transform 
@@ -46,7 +36,8 @@ class ModelParser {
      */
     public function parse(array $rows_results) : array
     {
-        $fields = $this->get_model_fields();
+        $model_name = $this->model ;
+        $fields = $model_name::get_fields();
         $results = [];
         $model = $this->model;
         foreach ($rows_results as $row)
@@ -58,10 +49,6 @@ class ModelParser {
                 {
                     $obj->$field = $value;
                 } 
-                else 
-                {
-                    $obj->set_unparsed($field, $value);
-                }
             }
             array_push($results, $obj);
         }

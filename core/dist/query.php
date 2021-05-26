@@ -261,7 +261,12 @@ class Query
     public function set(string $field, mixed $value, bool $do_clean_value=true): Query
     {
         if ($do_clean_value === true) $this->clean_data($value);
-        array_push($this->set, "`".$field . "` = " . $value);
+        return $this->raw_set("`".$field . "` = " . $value);
+    }
+
+    public function raw_set(string $expression) : Query 
+    {
+        array_push($this->set, $expression);
         return $this;
     }
 

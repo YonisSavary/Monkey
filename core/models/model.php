@@ -18,31 +18,21 @@ use Monkey\Web\Trash;
  */
 abstract class Model
 {
-    // Those are the unparsed fields : when sql results fields don't match your model's one
-    // non-matching fields are put into the unparsed variable
-    // Note : it is not public, so naming a field 'unparsed' is still allowed
-    protected $unparsed = [];
-
     // Table used by the model
-    protected $table;
+    const table = null;
     // Primary key field name, pretty important, it is used by example 
     // by the delete function which use its values to delete from the model table
-    protected $primary_key = "";
+    const primary_key = "";
 
-    // Class name, used by ModelParser constructors
-    protected $class = "null";
-    // ModelParser associated with the model, 
-    // automatically created when a model object is created
-    protected $parser = null;
 
 
     /**
      * Pretty explicit, get the table name,
      * as $table is protected, a getter is necessary
      */
-    public function get_table() : string
+    public static function get_table() : string
     { 
-        return $this->table; 
+        return (get_called_class())::table; 
     }
 
     
@@ -52,7 +42,7 @@ abstract class Model
      */
     public function get_primary_key() : string
     { 
-        return $this->primary_key; 
+        return (get_called_class())::primary_key; 
     }
 
 
@@ -62,8 +52,8 @@ abstract class Model
     public static function get_fields(array|string $ignores=[]): array 
     {
         if (!is_array($ignores)) $ignores = [$ignores];
-		$parser = new ModelParser(get_called_class());
-        return array_diff($parser->get_model_fields(), $ignores);
+        $fields = array_keys(get_class_vars(get_called_class()));
+        return array_diff($fields, $ignores);
     }
 
     public static function get_insertable_fields(array|string $ignores=[]): array 
@@ -100,28 +90,9 @@ abstract class Model
      */
     public function __construct()
     {
-        if (is_null($this->table)) Trash::fatal("No 'protected \$table' defined for model " . $this->class, true);
-
-        $this->parser = new ModelParser(get_called_class());
+        if ($this::table === null) Trash::fatal("No 'protected \$table' defined for model " . $this::class, true);
     }
 
-
-    /**
-     * Add a unparsed value
-     * 
-     * @param key Unparsed Field name
-     * @param mixed $value Field value 
-     */
-    public function set_unparsed(string $key, mixed $value) : void
-    {
-        $this->unparsed[$key] = $value;
-    }
-
-
-	public function get_unparsed() : array 
-	{
-		return $this->unparsed;
-	}
 
     /**
      * Query Building: I had some problem with these.
@@ -152,10 +123,11 @@ abstract class Model
     public static function build_query(array $fields=null, int $query_mode=Query::READ): Query
     {
         $model = new (get_called_class());
-        $table = $model->get_table();
+        $table = $model::get_table();
 
-        if ($fields === null) $fields = $model->parser->get_model_fields();
-        return new Query($table, $fields, $query_mode, $model->parser);
+        if ($fields === null) $fields = $model->get_fields();
+        $parser = new ModelParser(get_called_class());
+        return new Query($table, $fields, $query_mode, $parser);
     }
 
 
@@ -176,6 +148,7 @@ abstract class Model
 
     public static function insert(...$fields): Query
     {
+        if (count($fields) == 0) $fields = null;
         return self::build_query($fields, Query::CREATE);
     }
 
@@ -190,12 +163,14 @@ abstract class Model
      * this function base its behavior on the primary key value
      * so be aware to use it and declare your model properly !
      */
-    public function delete(): void
+    public function delete(bool $return_query = false)
     {
-        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value');
-        $primary = $this->primary_key;
+        if ($this::primary_key === null) Trash::fatal('Object has no $primary_key field value');
+        $primary = $this::primary_key;
         if (!isset($this->$primary)) Trash::fatal("Object has no '$primary' field");
-        $this->delete_from()->where($primary, $this->$primary)->execute();
+        $query = $this::delete_from()->where($primary, $this->$primary);
+        if ($return_query === true) return $query;
+        $query->execute();
     }
 
 
@@ -206,11 +181,11 @@ abstract class Model
      */
     public function save(bool $return_query = false)
     {
-        $fields = $this->parser->get_model_fields();
+        $fields = $this::get_fields();
 
-        if (!isset($this->primary_key)) Trash::fatal('Object has no $primary_key field value');
+        if ($this::primary_key === null) Trash::fatal('Object has no $primary_key field value');
+        $primary = $this::primary_key;
 
-        $primary = $this->primary_key;
         if (!isset($this->$primary)) Trash::fatal("Object has no $primary field value");
         
 		$query = self::update();
@@ -301,7 +276,7 @@ abstract class Model
         if ($new_object === null) return null;
 
         $fields_to_insert = ( array_keys($data) !== range(0, count($data) - 1) ) ?
-		array_keys($data) : self::get_fields();
+		array_keys($data) : $new_object::get_fields();
 
         $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
         $object_values = array_values($data);
