@@ -543,8 +543,9 @@ namespace Models;
 use Monkey\Model\Model;
 
 class Users extends Model {
-    protected $table="users";
-    protected $primary_key="id";
+    const table="users";
+    const primary_key="id";
+
     public $id;
     public $name;
 }
@@ -556,14 +557,15 @@ and the others are used in it internal methods.
 
 The abstract class `Monkey\Model\Model` has a few functions linked to the `Monkey\Dist\Query` ones :
 
-```php$modelObject = new User();
+```php
 // Table method
-$modelObject->get("id", "name");
-$modelObject->get_all();
-$modelObject->update();
-$modelObject->insert();
-$modelObject->delete_from();
+User::get("id", "name");
+User::get_all();
+User::update();
+User::insert();
+User::delete_from();
 
+$modelObject = new User();
 // Object method 
 $modelObject->save();
 $modelObject->delete();

@@ -1,6 +1,8 @@
 <?php
 
+use Models\User;
 use Monkey\Framework\Router;
+use Monkey\Model\ModelFetcher;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 
@@ -27,6 +29,8 @@ require_once "../core/monkey.php";
 
 /* Basic Route Example */
 Router::add("/", function(Request $req){
+    ModelFetcher::fetch("user", null, true);
+    
     return Response::json(["status"=>"It's does works !"]);
 });
 

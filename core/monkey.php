@@ -1,11 +1,5 @@
 <?php
 
-use Monkey\Web\Trash;
-
-
-register_shutdown_function( fn()=> Trash::fatal());
-
-
 
 if (str_ends_with(getcwd(), "public")) chdir("..");
 
@@ -24,6 +18,8 @@ if (file_exists("vendor/autoload.php")) require_once "vendor/autoload.php";
 
 
 
+register_shutdown_function( fn()=> Monkey\Web\Trash::fatal());
+
 /*       _________________________________________
 	* _____/   INTITIALISING FRAMEWORKS COMPONENTS   \_____ */
 
@@ -41,3 +37,4 @@ Monkey\Storage\Session::init();
 Monkey\Framework\Router::init();
 Monkey\Dist\DB::init();
 Monkey\Services\Auth::init();
+

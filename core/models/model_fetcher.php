@@ -5,6 +5,7 @@ namespace Monkey\Model;
 use Exception;
 use Monkey\Dist\DB;
 use Monkey\Storage\Config;
+use Monkey\Web\Trash;
 
 class ModelFetcher
 {
@@ -31,7 +32,7 @@ class ModelFetcher
     public static function check_for_db_connection()
     {
         if (! DB::is_connected()) {
-            print("DB is not connected ! Ending.\n");
+            Trash::fatal("DB is not connected ! Ending.\n");
             die();
         }
     }
@@ -43,8 +44,7 @@ class ModelFetcher
         {
             $table_test = DB::query("SELECT 1 FROM $table_name");
         } catch (Exception $e) {
-            print("There is a problem with the '$table_name' table ! Ending.\n");
-            print($e->getMessage()."\n");
+            Trash::fatal("There is a problem with the '$table_name' table ! Ending.\n".$e->getMessage()."\n");
             die();
         }
     }
@@ -97,7 +97,7 @@ class ModelFetcher
     public static function get_primary_key(array $description)
     {
         foreach ($description as $field){
-            if ($field["Key"] === "PRI") return "\tprotected \$primary_key = '" . $field["Field"] . "';";
+            if ($field["Key"] === "PRI") return "\tconst primary_key = '" . $field["Field"] . "';";
         }
         return "";
     }
@@ -125,8 +125,9 @@ use Monkey\Model\Model;
 
 class $class_name extends Model 
 {
-\tprotected \$table = '$table_name';
+\tconst table = '$table_name';
 ".self::get_primary_key($description)."
+
 ".self::get_public_fields($description)."
 }
 
@@ -150,6 +151,6 @@ class $class_name extends Model
         $class_str = self::build_class_string($table_name, $description);
         file_put_contents($path, $class_str);
 
-        print("Writed ".sizeof(str_split($class_str))." chars in '$path' !\n");
+        return true;
     }
 }
