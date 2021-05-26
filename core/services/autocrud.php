@@ -2,9 +2,9 @@
 
 namespace Monkey\Services;
 
-use Monkey\Framework\AppLoader;
 use Monkey\Framework\Router;
 use Monkey\Web\Request;
+use Monkey\Web\Response;
 use Monkey\Web\Trash;
 
 class AutoCRUD 
@@ -18,7 +18,7 @@ class AutoCRUD
     const CRUD_CONFIG = [
         [AutoCRUD::MODE_CREATE, "create", ["POST"]],
         [AutoCRUD::MODE_READ  , "read"  , ["GET"]],
-        [AutoCRUD::MODE_UPDATE, "update", ["PUT", ["PATCH"]]],
+        [AutoCRUD::MODE_UPDATE, "update", ["PUT", "PATCH"]],
         [AutoCRUD::MODE_DELETE, "delete", ["DELETE"]],
     ];
 
@@ -29,31 +29,79 @@ class AutoCRUD
     static $middlewares = [];
     static $methods = null;
 
-    public static function create(Request $req, string $model)
+    public static function create(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
+        $fields = $model::get_insertable();
+        $values = $req->retrieve($fields);
+        $model::magic_insert($values);
+        return Response::json(["status"=>"done"]);
     }
 
-    public static function read(Request $req, string $model)
+    public static function read(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
+        $params = array_merge($req->get, $req->post);
+        $query = $model::get_all();
+        
+        if (count($params) == 0) return Response::json(["status"=>"error", "message"=>"No parameter"]); 
+
+        foreach ($params as $field => $value){
+            $query->where($field, $value);
+        }
+        return Response::json($query->execute());
     }
 
-    public static function update(Request $req, string $model)
+    public static function update(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
+        $primary = $model::get_primary_key();
+        $primary_value = $req->retrieve($primary);
+        if ($primary_value === null) return Response::json(["status"=>"error", "message"=>"No $primary specified !"]);
+
+        $subject = $model::get_all()->where($primary, $primary_value)->limit(1)->execute();
+        if (count($subject) == 0) return Response::json(["status"=>"error", "message"=>"No subject found ! Probably a bad $primary value"]);
+        $subject = $subject[0];
+
+        $params = array_merge($req->get, $req->post);
+        
+        if (count($params) == 1) return Response::json(["status"=>"error", "message"=>"No parameter"]);
+
+        foreach ($params as $field => $value)
+        {
+            if ($field == $primary) continue;
+            if (!$subject::has_fields($field)) continue;
+            $subject->$field = $value;
+        }
+        
+        $subject->save(true)->execute();
+
+        return Response::json(["status"=>"done"]);
     }
 
-    public static function delete(Request $req, string $model)
+    public static function delete(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
+        
+        $query = $model::delete_from();
+        $params = array_merge($req->get, $req->post);
+        
+        if (count($params) == 0) return Response::json(["status"=>"error", "message"=>"No parameter"]);
+        
+        foreach ($params as $field => $value){
+            $query->where($field, $value);
+        }
+        
+        $query->execute();
+
+        return Response::json(["status"=>"done"]);
     }
 
 
     public static function fix_model_classname(string &$model_class)
     {
-        if (class_exists($model_class, false)) $model_class = "Models\\" . $model_class;
-        if (class_exists($model_class)) Trash::fatal("Inexistant model class name ! ($model_class)");
+        if (!class_exists($model_class)) $model_class = "Models\\" . $model_class;
+        if (!class_exists($model_class)) Trash::fatal("Inexistant model class name ! ($model_class)");
     }
 
     public static function set_middlewares(array $middlewares){
@@ -65,11 +113,15 @@ class AutoCRUD
     }
 
 
-    public static function add_route(string $url_model_name, string $mode, array $default_methods=["GET"])
+    public static function add_route(
+        string $url_model_name, 
+        string $mode, 
+        array $default_methods,
+        string $class_name)
     {
         Router::add(
-            "/api/$url_model_name/{mode}/", 
-            [AutoCRUD::class, $mode],
+            "/api/$url_model_name/$mode/", 
+            fn(Request $req)=> AutoCRUD::$mode($req, $class_name),
             "autocrud_".$url_model_name."_".$mode,
             AutoCRUD::$middlewares,
             AutoCRUD::$methods ?? $default_methods
@@ -83,9 +135,10 @@ class AutoCRUD
     )
     {
         AutoCRUD::fix_model_classname($model_class);
+        $original_classname = $model_class;
         $model_sample = new $model_class();
 
-        $model_class = preg_replace("/.+\\/", "", $model_class);
+        //$model_class = preg_replace("/^.+\\/", "", $model_class);
         switch ($route_name_mode)
         {
             case self::ROUTE_NAME_LOWER:
@@ -99,8 +152,8 @@ class AutoCRUD
         }
 
         foreach (AutoCRUD::CRUD_CONFIG as $mode){
-            if ($mode[0] & $allowed_modes > 0) {
-                AutoCRUD::add_route($model_class, $mode[1], $mode[2]);
+            if (($allowed_modes & $mode[0]) > 0) {
+                AutoCRUD::add_route($model_class, $mode[1], $mode[2], $original_classname);
             }
         }
     }

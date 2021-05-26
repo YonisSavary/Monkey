@@ -3,8 +3,6 @@
 namespace Monkey\Framework;
 
 use Closure;
-use Error;
-use Exception;
 use Monkey\Storage\Register;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
@@ -302,7 +300,7 @@ class Router
                 $response = self::execute_route_callback($route->callback);
                 if ($return_response) return $response;
                 self::display_if_response($response); 
-                die();            
+                exit(0);            
             }
             catch (TypeError $e)
             {
