@@ -111,6 +111,16 @@ class ModelFetcher
     }
 
 
+    public static function get_insertable(array $description)
+    {
+        $insertable = [];
+        foreach ($description as $field)
+        {
+            if ($field["Extra"] !== null && $field["Extra"] !== "") continue;
+            array_push($insertable, $field["Field"]);
+        }
+        return "\tconst insertable = ['".join("', '", $insertable)."'];";
+    }
 
 
 
@@ -127,6 +137,7 @@ class $class_name extends Model
 {
 \tconst table = '$table_name';
 ".self::get_primary_key($description)."
+".self::get_insertable($description)."
 
 ".self::get_public_fields($description)."
 }

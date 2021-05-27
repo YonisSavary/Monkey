@@ -70,7 +70,7 @@ abstract class Model
     {
         if (!is_array($ignores)) $ignores = [$ignores];
 		$model = new (get_called_class());
-        return array_diff($model->insertable ?? [], $ignores);
+        return array_diff($model::insertable ?? [], $ignores);
     }
 
 	/**
