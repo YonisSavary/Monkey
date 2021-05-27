@@ -20,6 +20,8 @@ class Request
 
     const GET  = 0b00000001;
     const POST = 0b00000010;
+
+	const BODY = 0b10000000;
 	const AUTO = 0b11111111;
 
     public $path;
@@ -30,6 +32,7 @@ class Request
     public $get;
     public $post;
     public $files;
+	public $body;
 
 	public $errors = [];
 
@@ -41,13 +44,15 @@ class Request
 
     public function __construct(string $path=null, string $method=null)
     {
-		$this->request 	= $_REQUEST;
 		$this->session 	= $_SESSION;
-        $this->get 		= $_GET;
+        
+		$this->get 		= $_GET;
         $this->post 	= $_POST;
-        $this->files 	= $_FILES;
-		$this->cookie 	= $_COOKIE;
+        $this->body		= $_REQUEST;
 
+		$this->files 	= $_FILES;
+		$this->cookie 	= $_COOKIE;
+		
 		$this->path = $path;
 		$this->method = $method;
     }
@@ -153,7 +158,8 @@ class Request
 		// Mode and their storages
 		$storages = [
 			self::GET  => &$this->get, 
-			self::POST => &$this->post
+			self::POST => &$this->post,
+			self::BODY => &$this->body
 		];
 
         $values = [];

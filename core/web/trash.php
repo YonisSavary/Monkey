@@ -36,9 +36,9 @@ class Trash
      * 
      * @param string $message Message to display
      */
-    public static function fatal(...$args): void
+    public static function fatal(string $message=null): void
     {
-        self::send("fatal", ...$args);
+        Trash::send("fatal", $message);
     }
 
 

@@ -102,15 +102,6 @@ class ModelFetcher
         return "";
     }
 
-
-    public static function get_public_fields(array $description)
-    {
-        return join("\n", 
-            array_map(fn($value)=> "\tpublic \t\$".$value["Field"].";", $description)
-        );
-    }
-
-
     public static function get_insertable(array $description)
     {
         $insertable = [];
@@ -121,6 +112,15 @@ class ModelFetcher
         }
         return "\tconst insertable = ['".join("', '", $insertable)."'];";
     }
+
+
+    public static function get_public_fields(array $description)
+    {
+        return join("\n", 
+            array_map(fn($value)=> "\tpublic \$".$value["Field"].";", $description)
+        );
+    }
+
 
 
 

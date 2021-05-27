@@ -191,7 +191,7 @@ abstract class Model
      */
     public function save(bool $return_query = false)
     {
-        $fields = $this::get_fields();
+        $fields = $this::get_insertable();
 
         if ($this::primary_key === "") Trash::fatal('Object has no $primary_key field value');
         $primary = $this::primary_key;

@@ -120,7 +120,7 @@ class AutoCRUD
         string $class_name)
     {
         Router::add(
-            "/api/$url_model_name/$mode/", 
+            "/$url_model_name/$mode/", 
             fn(Request $req)=> AutoCRUD::$mode($req, $class_name),
             "autocrud_".$url_model_name."_".$mode,
             AutoCRUD::$middlewares,
