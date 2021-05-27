@@ -2,7 +2,6 @@
 
 namespace Monkey\Services;
 
-use Kernel\Model\ModelParser;
 use Monkey\Storage\Config;
 use Monkey\Web\Trash;
 
@@ -43,8 +42,7 @@ class Auth
         if (!class_exists($model_name, true)) Trash::fatal("$model_name Model does not exists !");
 
         $model = new $model_name();
-        $parser = new ModelParser($model_name);
-        $fields = $parser->get_model_fields();
+        $fields = $model_name::get_fields();
 
 
         $login_field = Config::get("auth")["login_field"];
