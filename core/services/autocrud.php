@@ -34,7 +34,7 @@ class AutoCRUD
         AutoCRUD::fix_model_classname($model);
         $fields = $model::get_insertable();
         $values = $req->retrieve($fields);
-        $model::magic_insert($values);
+        $model::magic_insert($values)->execute();
         return Response::json(["status"=>"done"]);
     }
 
@@ -57,7 +57,7 @@ class AutoCRUD
         AutoCRUD::fix_model_classname($model);
         $primary = $model::get_primary_key();
         $primary_value = $req->retrieve($primary);
-        if ($primary_value === null) return Response::json(["status"=>"error", "message"=>"No $primary specified !"]);
+        if ($primary_value === null) return Response::json(["status"=>"error", "message"=>"No $primary specified !", "details"=>$req->body]);
 
         $subject = $model::get_all()->where($primary, $primary_value)->limit(1)->execute();
         if (count($subject) == 0) return Response::json(["status"=>"error", "message"=>"No subject found ! Probably a bad $primary value"]);

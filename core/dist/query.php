@@ -172,6 +172,10 @@ class Query
             {
                 $values = ($values === true) ? "TRUE" : "FALSE";
             } 
+            else if ($values === null)
+            {
+                $values = "NULL";
+            }
             else if (!is_numeric($values))
             {
                 $skip = false;
