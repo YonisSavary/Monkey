@@ -35,6 +35,13 @@ class Route
 	public $middlewares;
 	public $regex;
 
+	const SLUGS_TYPES = [
+		"/\{int:.+\}/" => "[0-9]+", 
+		"/\{float:.+\}/" => "[0-9]+\.?[0-9]{0,}", 
+		"/\{bool:.+\}/" => "(true|false)",
+		"/\{string:.+\}/" => ".+",
+		"/\{[A-Za-z0-9:]+\}/" => ".+"
+	];
 
     /**
      * Given a route path, this function return
@@ -47,8 +54,12 @@ class Route
     {
         $regex = $path;
         $regex = str_replace("/", "\\/", $regex);
-        $regex = preg_replace("/\{[^\}]+\}/", ".+", $regex);
-        $regex = "/^$regex\/?$/";
+
+		foreach (self::SLUGS_TYPES as $declaration => $type_regex){
+			$regex = preg_replace($declaration, $type_regex, $regex);
+		}
+
+        $regex = "/^$regex\/?$/i";
         return $regex;
     }
 

@@ -3,6 +3,7 @@
 namespace Monkey\Web;
 
 use Exception;
+use Monkey\Framework\Route;
 
 /**
  * This class has no other purpose than store
@@ -128,11 +129,24 @@ class Request
         {
             $pattern = $route_parts[$i];
             if (!preg_match("/\{.+\}/", $pattern)) continue;
-            $slug_name = preg_replace("/[\{\}]/", "", $pattern);
-            $slug_value = $request_parts[$i];
-            $slugs[$slug_name] = self::get_slug_right_type($slug_value);
+			
+			$slug_name = preg_replace("/[\{\}]/", "", $pattern);
+			$slug_value = $request_parts[$i];
+
+			if (preg_match("/{.+:.+}/", $pattern))
+			{
+				$slug_name = explode(":", $slug_name)[1];
+				foreach (Route::SLUGS_TYPES as $type => $void)
+				{
+					if (!preg_match($type, $pattern)) continue;
+					$slugs[$slug_name] = self::get_slug_right_type($slug_value);
+				}
+			} 
+			else 
+			{
+				$slugs[$slug_name] = self::get_slug_right_type($slug_value);
+			}
         }
-		
         if ($return === true) return $slugs;
 		$this->slugs = $slugs;
     } 
