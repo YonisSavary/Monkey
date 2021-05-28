@@ -172,7 +172,7 @@ class Query
             {
                 $values = ($values === true) ? "TRUE" : "FALSE";
             } 
-            else if ($values === null)
+            else if ($values === null || strtolower($values)=== "null")
             {
                 $values = "NULL";
             }

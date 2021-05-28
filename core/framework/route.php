@@ -48,7 +48,7 @@ class Route
         $regex = $path;
         $regex = str_replace("/", "\\/", $regex);
         $regex = preg_replace("/\{[^\}]+\}/", ".+", $regex);
-        $regex = "/^$regex$/";
+        $regex = "/^$regex\/?$/";
         return $regex;
     }
 
@@ -89,6 +89,7 @@ class Route
 		array $middlewares=[],  
 		array $methods=null)
 	{
+		if (str_ends_with($path, "/") && (strlen($path) > 1) ) $path = substr($path, 0, -1);
         $this->path = $path;
         $this->callback = $callback;
         $this->name = $name;

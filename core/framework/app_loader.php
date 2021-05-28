@@ -188,21 +188,6 @@ class AppLoader
     }
 
 
-    /**
-     * Execute the autoload callback 
-     * for each AppLoader::$autoload_list
-     */
-    public static function do_autoload()
-    {
-		spl_autoload_register(function()
-        {
-            foreach (AppLoader::$autoload_list as $dir)
-            {
-                include($dir);
-            }
-        });
-    }
-
 
 
     /**
@@ -220,8 +205,12 @@ class AppLoader
         self::$app_directories = $cfg_app;
 
         self::read_from_register();
-        self::load_applications();        
-        self::do_autoload();
+        self::load_applications();    
+
+        foreach (AppLoader::$autoload_list as $dir)
+        {
+            require_once $dir;
+        }
 
 		Config::read_file(AppLoader::$config_paths);
     }

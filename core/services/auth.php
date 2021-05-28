@@ -64,10 +64,17 @@ class Auth
             } 
             else 
             {
-                $_SESSION["m_auth_duration"] +=  Config::get("auth")["hop_duration"] ??  300;
-                if ($_SESSION["m_auth_duration"] > Config::get("auth")["duration"] ?? 3600)
+                if ($_SESSION["m_auth_duration"] ?? -1 == 0)
                 {
-                    $_SESSION["m_auth_duration"] =  Config::get("auth")["duration"] ?? 3600;
+                    $_SESSION["m_auth_duration"] = Config::get("auth")["duration"] ;
+                } 
+                else 
+                {
+                    $_SESSION["m_auth_duration"] +=  Config::get("auth")["hop_duration"] ??  300;
+                    if ($_SESSION["m_auth_duration"] > Config::get("auth")["duration"] ?? 3600)
+                    {
+                        $_SESSION["m_auth_duration"] =  Config::get("auth")["duration"] ?? 3600;
+                    }
                 }
             }
         }

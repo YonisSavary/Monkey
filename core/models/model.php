@@ -286,7 +286,7 @@ abstract class Model
         if ($new_object === null) return null;
 
         $fields_to_insert = ( array_keys($data) !== range(0, count($data) - 1) ) ?
-		array_keys($data) : $new_object::get_fields();
+		array_keys($data) : $new_object::get_insertable();
 
         $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
         $object_values = array_values($data);
