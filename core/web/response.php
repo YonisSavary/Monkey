@@ -51,13 +51,14 @@ class Response
      * @param bool $delete Do we delete the file after it was sent
      * @param bool $secure Ignore the function if the path includes some forbidden terms
      */
-    public static function send_file(string $path, bool $secure=false)
+    public static function send_file(string $path, bool $secure=true, array $forbidden_keywords=null)
     {
         if ($secure === true)
 		{
-            foreach(["/etc", "/opt", "/windows", ".."] as $word)
+            $forbidden_keywords = $forbidden_keywords ?? ["/etc", "/opt", "/windows", ".."];
+            foreach($forbidden_keywords as $word)
 			{
-                if (strpos($path, $word) !== false) return false;
+                if (strpos($path, $word) !== false) Trash::fatal("Can't send $path file, Forbidden Access by Framework");
             }
         }
 

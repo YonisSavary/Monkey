@@ -98,10 +98,8 @@ class Config
      */
     public static function init()
     {
-        $GLOBALS["monkey"]["config"] = [];
-        if (self::read_file("./monkey.json") === false){
-            Trash::fatal("monkey.json does not exists !");
-        }
+        if (!isset($GLOBALS["monkey"]["config"])) $GLOBALS["monkey"]["config"] = [];
+        self::read_file("./monkey.json");
         self::$config_ref = &$GLOBALS["monkey"]["config"];
     }
 }

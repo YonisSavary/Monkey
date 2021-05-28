@@ -146,10 +146,6 @@ function($custom_message = null) {
             </table>
         </details>
 
-        <details>
-            <summary>Configuration Debug</summary> 
-            <pre><?= json_encode(Config::$config_ref, JSON_PRETTY_PRINT) ?></pre>
-        </details>
     <?php 
     Trash::get_error_page("Error 500 : Internal Server Error !", ob_get_clean())->reveal();
     register_shutdown_function(fn()=>false);
