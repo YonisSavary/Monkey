@@ -27,7 +27,7 @@ class Trash
 	{
         $callback = self::$error_callbacks[$error] ?? null;
 
-        if (is_callable($callback)) return $callback(...$args);
+        if (is_callable($callback)) $res = $callback(...$args);
         $res = Router::execute_route_callback($callback, $args);
         if ($res instanceof Response){
             $res->reveal();
