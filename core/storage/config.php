@@ -10,7 +10,8 @@ use Monkey\Web\Trash;
  */
 class Config
 {
-    static $config_ref = null;
+    static $config = null;
+
     /**
      * - Read a file if it exists
      * - If an error happend while reading json, Trash will handle a fatal error
@@ -20,11 +21,10 @@ class Config
      */
     public static function read_file(string|array $path)
 	{
-		if (is_array($path)){
+		if (is_array($path))
+        {
 			$res = true;
-			foreach ($path as $p){
-				$res &= self::read_file($p);
-			}
+			foreach ($path as $p) $res &= self::read_file($p);
 			return $res;
 		}
 
@@ -33,13 +33,9 @@ class Config
         $content = json_decode(file_get_contents($path), true);
 
         $last_error = json_last_error();
-        if ($last_error !== JSON_ERROR_NONE){
-            Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !");
-        }
+        if ($last_error !== JSON_ERROR_NONE) Trash::fatal("JSON Syntax Error while reading '$path' (json_last_error() == $last_error) !");
 
-        foreach ($content as $key => $value){
-            self::set($key, $value);
-        }
+        foreach ($content as $key => $value) self::set($key, $value);
 
 		return true;
     }
@@ -75,8 +71,7 @@ class Config
      */
     public static function get(string $key, mixed $default=null) : mixed
     {
-        if (self::exists($key)) return $GLOBALS["monkey"]["config"][$key];
-        return $default;
+        return $GLOBALS["monkey"]["config"][$key] ?? $default;
     }
 
 
@@ -100,6 +95,6 @@ class Config
     {
         if (!isset($GLOBALS["monkey"]["config"])) $GLOBALS["monkey"]["config"] = [];
         self::read_file("./monkey.json");
-        self::$config_ref = &$GLOBALS["monkey"]["config"];
+        self::$config = &$GLOBALS["monkey"]["config"];
     }
 }

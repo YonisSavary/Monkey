@@ -1,39 +1,97 @@
-<?php
+<?php 
 
-use Monkey\Dist\Query;
 use PHPUnit\Framework\TestCase;
 
-class queryTest extends TestCase
+class QueryTest
 {
-	public function test_clean_data(){
-		$query = new Query("placeholder");
-		
-		$someVal = "'someDangerousString!'";
-		$query->clean_data($someVal);
-		$this->assertEquals("'\'someDangerousString!\''", $someVal);
+    public function test_insert()
+    {
 
-		$someArray = [
-			"'someDangerousString!'",
-			"'AnotherOne!'"
-		];
-		$query->clean_data($someArray);
-		$this->assertEquals([
-			"'\'someDangerousString!\''",
-			"'\'AnotherOne!\''",
-		], $someArray);
+    }
+    
+    public function test_select()
+    {
 
-	}
-	
-	public function test_or(){ $this->assertTrue(true, "TODO"); }
-	public function test_and(){ $this->assertTrue(true, "TODO"); }
-	public function test_set(){ $this->assertTrue(true, "TODO"); }
-	public function test_values(){ $this->assertTrue(true, "TODO"); }
-	public function test_where(){ $this->assertTrue(true, "TODO"); }
-	public function test_raw_where(){ $this->assertTrue(true, "TODO"); }
-	public function test_order_by(){ $this->assertTrue(true, "TODO"); }
-	public function test_limit(){ $this->assertTrue(true, "TODO"); }
-	public function test_offset(){ $this->assertTrue(true, "TODO"); }
-	public function test_build(){ $this->assertTrue(true, "TODO"); }
-	public function test_execute(){ $this->assertTrue(true, "TODO"); }
-	
+    }
+    
+    public function test_update()
+    {
+
+    }
+    
+    public function test_delete_from()
+    {
+
+    }
+    
+    public function test_clean_data()
+    {
+
+    }
+    
+    public function test_set_parser()
+    {
+
+    }
+    
+    public function test_reset()
+    {
+
+    }
+    
+    public function test_or()
+    {
+
+    }
+    
+    public function test_and()
+    {
+
+    }
+    
+    public function test_set()
+    {
+
+    }
+    
+    public function test_values()
+    {
+
+    }
+    
+    public function test_where()
+    {
+
+    }
+    
+    public function test_raw_where()
+    {
+
+    }
+    
+    public function test_order_by()
+    {
+
+    }
+    
+    public function test_limit()
+    {
+
+    }
+    
+    public function test_offset()
+    {
+
+    }
+    
+    public function test_build()
+    {
+
+    }
+    
+    public function test_execute()
+    {
+
+    }
+    
 }

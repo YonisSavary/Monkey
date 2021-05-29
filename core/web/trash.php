@@ -28,7 +28,12 @@ class Trash
         $callback = self::$error_callbacks[$error] ?? null;
 
         if (is_callable($callback)) return $callback(...$args);
-        return Router::execute_route_callback($callback, $args);
+        $res = Router::execute_route_callback($callback, $args);
+        if ($res instanceof Response){
+            $res->reveal();
+            exit(1);
+        }
+        return $res;
     }
 
     /**
@@ -69,7 +74,7 @@ Trash::on("404",
 fn($request_path)=> Trash::get_error_page("Error 404 : Page Not found !", "\"".$request_path."\" route not found"));
 
 Trash::on("405",    
-fn($request_path, $method)=> Trash::get_error_page("Error 403 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));
+fn($request_path, $method)=> Trash::get_error_page("Error 405 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));
 
 /*
 Trash::on("fatal", 
@@ -122,7 +127,7 @@ function($custom_message = null) {
                     <th>Methods</th>
                     <th>Middlewares</th>
                 </tr>
-                <?php foreach (Router::$temp as $route) { ?>
+                <?php foreach (Router::$routes as $route) { ?>
                     <tr>
                         <td><?= $route->path ?></td>
                         <td><?= print_r($route->callback, true) ?></td>

@@ -20,7 +20,6 @@ class Register
         $ser_glob_str = self::$store . "*.json";
         $ser_glob = glob($ser_glob_str);
         foreach($ser_glob as $path) {
-            //echo "Loading $path <br>"; // DEBUG
             $file_name = preg_replace("/.+\//", "", $path);
             $key = substr($file_name, 0, strlen($file_name)-5);
             $GLOBALS["monkey"][$key] = json_decode(file_get_contents($path), true);
@@ -37,8 +36,7 @@ class Register
      */
     public static function get(string $key, mixed $default=null) : mixed
     {
-        if (isset($GLOBALS["monkey"][$key])) return $GLOBALS["monkey"][$key];
-        return $default;
+        return $GLOBALS["monkey"][$key] ?? $default;
     }
 
 

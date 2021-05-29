@@ -10,6 +10,23 @@ class Response
     public $header = "Content-type: text/html";
     public $content = "";
 
+
+    /**
+     * Given an object, this function display its
+     * content if it is a Response Object (and then exit)
+     * 
+     * @param mixed $object Object to check
+     */
+    public static function reveal_if_response(mixed $object) : void
+    {
+        if ($object instanceof Response)
+        {
+            $object->reveal();
+            exit(0);
+        }
+    }
+
+
     /**
      * @param string $content HTML/String content of the query
      */

@@ -3,6 +3,7 @@ monkey.json
 vendor
 config/*.json
 .phpunit.result.cache
+app_test_for_monkey
 
 composer.json
 composer.lock

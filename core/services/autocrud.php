@@ -46,9 +46,11 @@ class AutoCRUD
         
         if (count($params) == 0) return Response::json(["status"=>"error", "message"=>"No parameter"]); 
 
-        foreach ($params as $field => $value){
+        foreach ($params as $field => $value)
+        {
             $query->where($field, $value);
         }
+
         return Response::json($query->execute());
     }
 
@@ -79,6 +81,7 @@ class AutoCRUD
         return Response::json(["status"=>"done"]);
     }
 
+
     public static function delete(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
@@ -104,16 +107,18 @@ class AutoCRUD
         if (!class_exists($model_class)) Trash::fatal("Inexistant model class name ! ($model_class)");
     }
 
+
     public static function set_middlewares(array $middlewares){
         self::$middlewares = $middlewares;
     }
+
 
     public static function set_methods(array $methods){
         self::$methods = $methods;
     }
 
 
-    public static function add_route(
+    public static function add_specific_route(
         string $url_model_name, 
         string $mode, 
         array $default_methods,
@@ -127,6 +132,7 @@ class AutoCRUD
             AutoCRUD::$methods ?? $default_methods
         );
     }
+
 
     public static function add(
         string $model_class, 
@@ -151,9 +157,11 @@ class AutoCRUD
             default : break;
         }
 
-        foreach (AutoCRUD::CRUD_CONFIG as $mode){
-            if (($allowed_modes & $mode[0]) > 0) {
-                AutoCRUD::add_route($model_class, $mode[1], $mode[2], $original_classname);
+        foreach (AutoCRUD::CRUD_CONFIG as $mode)
+        {
+            if (($allowed_modes & $mode[0]) > 0) 
+            {
+                AutoCRUD::add_specific_route($model_class, $mode[1], $mode[2], $original_classname);
             }
         }
     }

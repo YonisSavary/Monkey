@@ -99,7 +99,7 @@ class AppLoader
      * @param string $path Path of the application to load
      * @return array PHP Files to load
      */
-    public static function load_application(string $path) : array
+    public static function load_application_path(string $path) : array
     {
         if (!is_dir($path)) return false;
         if (substr($path, -1) != "/") $path .= "/";
@@ -133,18 +133,21 @@ class AppLoader
     /**
      * Loads the applications in AppLoader::$app_directories
      */
-    public static function load_applications() : bool
+    public static function load_all_applications() : bool
     {
         if (self::$loaded_directories === true) return false;
+
         $to_loads = [];
         foreach(AppLoader::$app_directories as $dir)
         {
             if (!str_ends_with("/", $dir)) $dir .= "/";
-            $to_loads = array_merge($to_loads, AppLoader::load_application($dir));
+            $to_loads = array_merge($to_loads, AppLoader::load_application_path($dir));
         }
-        AppLoader::$autoload_list = $to_loads;    
+        AppLoader::$autoload_list = $to_loads; 
+
         self::write_to_register();
         self::$loaded_directories = true;
+
         return true;
     }
 
@@ -160,9 +163,9 @@ class AppLoader
         if (Config::get(AppLoader::CACHE_FILE_NAME) === true)
         {
             Register::set(AppLoader::CACHE_FILE_NAME, [
-                "views_directories"=> AppLoader::$views_directories,
-                "autoload_list"=> AppLoader::$autoload_list,
-                "config_paths" => AppLoader::$config_paths
+                "views_directories" => AppLoader::$views_directories,
+                "autoload_list"     => AppLoader::$autoload_list,
+                "config_paths"      => AppLoader::$config_paths
             ]);
         }  
     }
@@ -199,13 +202,13 @@ class AppLoader
      */
     public static function init() : void
     {
-        $cfg_app = Config::get("app_directories", []);
-        if (is_string($cfg_app)) $cfg_app = [$cfg_app];
+        $app_directories = Config::get("app_directories", []);
+        if (is_string($app_directories)) $app_directories = [$app_directories];
 
-        self::$app_directories = $cfg_app;
+        self::$app_directories = $app_directories;
 
         self::read_from_register();
-        self::load_applications();    
+        self::load_all_applications();    
 
         foreach (AppLoader::$autoload_list as $dir)
         {

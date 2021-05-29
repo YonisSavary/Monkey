@@ -36,12 +36,13 @@ class Route
 	public $regex;
 
 	const SLUGS_TYPES = [
-		"/\{int:.+\}/" => "[0-9]+", 
-		"/\{float:.+\}/" => "[0-9]+\.?[0-9]{0,}", 
-		"/\{bool:.+\}/" => "(true|false)",
-		"/\{string:.+\}/" => "[A-Za-z_ ]+",
-		"/\{[A-Za-z0-9:]+\}/" => ".+"
+		"/\{int:.+\}/" 			=> "[0-9]+", 
+		"/\{float:.+\}/" 		=> "[0-9]+\.?[0-9]{0,}", 
+		"/\{bool:.+\}/" 		=> "(true|false)",
+		"/\{string:.+\}/" 		=> "[A-Za-z_ ]+",
+		"/\{[A-Za-z0-9:]+\}/" 	=> ".+"
 	];
+
 
     /**
      * Given a route path, this function return
@@ -55,7 +56,8 @@ class Route
         $regex = $path;
         $regex = str_replace("/", "\\/", $regex);
 
-		foreach (self::SLUGS_TYPES as $declaration => $type_regex){
+		foreach (self::SLUGS_TYPES as $declaration => $type_regex)
+		{
 			$regex = preg_replace($declaration, $type_regex, $regex);
 		}
 
@@ -90,6 +92,7 @@ class Route
 		return (preg_match($this->regex, $request) !== 0);
 	}
 
+
 	/**
 	 * You can see the docs of `Route` class for more informations
 	 */
@@ -100,7 +103,11 @@ class Route
 		array $middlewares=[],  
 		array $methods=null)
 	{
-		if (str_ends_with($path, "/") && (strlen($path) > 1) ) $path = substr($path, 0, -1);
+		// We subtract "/" at the end of $path unless it is litterally "/"
+		if (str_ends_with($path, "/") && (strlen($path) > 1) )
+		{
+			$path = substr($path, 0, -1);
+		} 
         $this->path = $path;
         $this->callback = $callback;
         $this->name = $name;

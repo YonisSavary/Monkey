@@ -4,10 +4,14 @@ use Monkey\Storage\Config;
 use Monkey\Framework\Router;
 use Monkey\Web\Renderer;
 
-function url(string $file) : string
+/**
+ * Put the app_url_prefix config key 
+ * before the first parameter
+ */
+function url(string $target) : string
 {
     $prefix = Config::get("app_url_prefix", "/");
-    return str_replace("//", "/", $prefix."/".$file);
+    return str_replace("//", "/", $prefix."/".$target);
 }
 
 
@@ -20,7 +24,7 @@ function render(string $template_name, array $vars=[]) : string
 }
 
 
-function router(string $name_or_route) : string
+function router(string $name_or_path) : string
 {
-    return Router::find($name_or_route)->path ?? "/".$name_or_route;
+    return Router::find($name_or_path)->path ?? "/".$name_or_path;
 }

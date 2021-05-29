@@ -13,9 +13,13 @@ class DB {
     static $configuration = [];
     static $last_insert_id = null;
 
-	static $force_fetch_all = false;
-
 	static $fetch_mode = PDO::FETCH_ASSOC;
+
+
+	public static function last_insert_id() 
+	{
+		return self::$last_insert_id ?? null;
+	}
 
 
 	/**
@@ -60,10 +64,10 @@ class DB {
      * 
      * @return bool Was the connection successful ?
      */
-    public static function init(string $custom_dsn=null, bool $force_init=false) : bool
+    public static function init(string $custom_dsn=null) : bool
     {
-        self::load_configuration();
-        if (self::$configuration["enabled"] !== true && !$force_init) return false;
+        self::$configuration = Config::get("db") ?? ["enabled" => false];
+        if (self::$configuration["enabled"] !== true) return false;
 	    self::$connection = self::get_connection(self::$configuration["user"], self::$configuration["pass"], $custom_dsn);
 
         return true;
@@ -77,18 +81,14 @@ class DB {
      */
     public static function check_connection() : bool
     {
-        if (self::$connection === null){
+        if (self::$connection === null)
+		{
 			Trash::fatal("You tried to use a Function from the DB component but db.enabled is set to false :(");
 			return false;
 		} 
 		return true;
     }
 
-
-    public static function load_configuration() : void
-    {
-        self::$configuration = Config::get("db");
-    }
 
     public static function get_dsn() : string
     {
@@ -136,17 +136,19 @@ class DB {
     public static function query(string $query, mixed ...$params) : array
     {
         self::check_connection();
-		if (count($params) > 0){
+		if (count($params) > 0)
+		{
 			$query = self::quick_prepare($query, ...$params);
 		}
 	
         $statement = self::$connection->query($query);
         self::$last_insert_id = self::$connection->lastInsertId() ?? null;
 
-        if ($statement->rowCount() > 0 || self::$force_fetch_all)
+        if ($statement->rowCount() > 0)
         {
             return $statement->fetchAll(self::$fetch_mode);
         }
+
         return [];
     }
 

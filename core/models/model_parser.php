@@ -38,11 +38,11 @@ class ModelParser {
     {
         $model_name = $this->model ;
         $fields = $model_name::get_fields();
+
         $results = [];
-        $model = $this->model;
         foreach ($rows_results as $row)
         {
-            $obj = new $model();
+            $obj = new $model_name();
             foreach ($row as $field => $value)
             {
                 if (in_array($field, $fields))
@@ -52,6 +52,7 @@ class ModelParser {
             }
             array_push($results, $obj);
         }
+        
         return $results;
     }
 }

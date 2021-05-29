@@ -2,10 +2,10 @@
 
 namespace Monkey\Model;
 
-use Exception;
 use Monkey\Dist\DB;
 use Monkey\Storage\Config;
 use Monkey\Web\Trash;
+use PDOException;
 
 class ModelFetcher
 {
@@ -31,7 +31,8 @@ class ModelFetcher
 
     public static function check_for_db_connection()
     {
-        if (! DB::is_connected()) {
+        if (!DB::is_connected()) 
+        {
             Trash::fatal("DB is not connected ! Ending.\n");
             die();
         }
@@ -42,22 +43,24 @@ class ModelFetcher
     {
         try 
         {
-            $table_test = DB::query("SELECT 1 FROM $table_name");
-        } catch (Exception $e) {
+            DB::query("SELECT 1 FROM $table_name");
+        } 
+        catch (PDOException $e) 
+        {
             Trash::fatal("There is a problem with the '$table_name' table ! Ending.\n".$e->getMessage()."\n");
             die();
         }
     }
 
 
-    public static function get_model_directory($app_directory) : string
+    public static function get_new_model_path($app_directory) : string
     {
         if (is_null($app_directory))
         {
             $app_directory = Config::get("app_directories");
             if (is_array($app_directory)) $app_directory = $app_directory[0];
-            if (!str_ends_with($app_directory, "/")) $app_directory .= "/";
         }
+        if (!str_ends_with($app_directory, "/")) $app_directory .= "/";
         return $app_directory . "models/" ;
     }
 
@@ -80,21 +83,14 @@ class ModelFetcher
         if (file_exists($path)) print("Overwriting '$path'.\n");
     }
 
+
     public static function get_table_description(string $table_name)
     {
         return DB::query("DESCRIBE $table_name");
     }
 
 
-
-
-    public static function get_table_name(array $description)
-    {
-
-    }
-
-
-    public static function get_primary_key(array $description)
+    public static function get_description_primary_key(array $description)
     {
         foreach ($description as $field){
             if ($field["Key"] === "PRI") return "\tconst primary_key = '" . $field["Field"] . "';";
@@ -102,19 +98,20 @@ class ModelFetcher
         return "";
     }
 
-    public static function get_insertable(array $description)
+
+    public static function get_description_insertables(array $description)
     {
-        $insertable = [];
+        $insertables = [];
         foreach ($description as $field)
         {
             if ($field["Extra"] !== null && $field["Extra"] !== "") continue;
-            array_push($insertable, $field["Field"]);
+            array_push($insertables, $field["Field"]);
         }
-        return "\tconst insertable = ['".join("', '", $insertable)."'];";
+        return "\tconst insertables = ['".join("', '", $insertables)."'];";
     }
 
 
-    public static function get_public_fields(array $description)
+    public static function get_description_fields(array $description)
     {
         return join("\n", 
             array_map(fn($value)=> "\tpublic \$".$value["Field"].";", $description)
@@ -136,10 +133,10 @@ use Monkey\Model\Model;
 class $class_name extends Model 
 {
 \tconst table = '$table_name';
-".self::get_primary_key($description)."
-".self::get_insertable($description)."
+".self::get_description_primary_key($description)."
+".self::get_description_insertables($description)."
 
-".self::get_public_fields($description)."
+".self::get_description_fields($description)."
 }
 
         ";
@@ -147,19 +144,18 @@ class $class_name extends Model
 
     public static function fetch(string $table_name, string $app_directory=null, bool $force_overwrite=false)
     {
-        $model_directory = self::get_model_directory($app_directory);
-
         self::check_for_db_connection();
         self::check_for_existing_table($table_name);
 
         $model_name = ModelFetcher::get_camel_case_of($table_name);
+        $model_directory = self::get_new_model_path($app_directory);
         $path = $model_directory . $model_name . ".php";
 
         if (!$force_overwrite) self::ask_for_overwriting_file($path);
 
         $description = self::get_table_description($table_name);
-
         $class_str = self::build_class_string($table_name, $description);
+
         file_put_contents($path, $class_str);
 
         return true;

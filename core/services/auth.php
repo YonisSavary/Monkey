@@ -18,14 +18,15 @@ class Auth
     static $pass_field = null;
 
     /**
-     * Given a clear password, return a Hash made
-     * with BCRYPT and a cost of 8
+     * Given a clear password, return a Hash made with an algorithm and a cost
      * 
      * @param string $password
+     * @param string $algorithm (Algorithm to use, BCRYPT by default)
+     * @param int $cost Cost (8 by default)
      */
-    public static function create_password(string $password) : string
+    public static function create_password(string $password, string $algorithm=PASSWORD_BCRYPT, int $cost=8) : string
     {
-        return password_hash($password, PASSWORD_BCRYPT, ["cost"=>8]);
+        return password_hash($password, $algorithm, ["cost"=>$cost]);
     }
 
 
@@ -36,22 +37,23 @@ class Auth
     public static function init()
     {
         self::$config = Config::get("auth") ?? ["enabled" => false];
-        if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
         if (self::$config["enabled"] !== true) return null;
+
+        if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
+        if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
 
         $model_name = self::$config["model"];
         if (!class_exists($model_name, false)) $model_name = "Models\\".$model_name;
-        if (!class_exists($model_name, true)) Trash::fatal("$model_name Model does not exists !");
+        if (!class_exists($model_name, true)) Trash::fatal("Auth : $model_name Model does not exists !");
 
         $model = new $model_name();
         $fields = $model_name::get_fields();
 
-
         $login_field = self::$config["login_field"];
-        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $login_field public field");
+        if (!in_array($login_field, $fields)) Trash::fatal("Auth : $model_name does not have a $login_field public field");
 
         $pass_field = self::$config["pass_field"];
-        if (!in_array($login_field, $fields)) Trash::fatal("$model_name does not have a $pass_field public field");
+        if (!in_array($login_field, $fields)) Trash::fatal("Auth : $model_name does not have a $pass_field public field");
 
         self::$model = $model;
         self::$login_field = $login_field;
@@ -94,13 +96,16 @@ class Auth
     {
         $user = self::$model_name::get_all()->where(self::$login_field, $login)->limit(1)->execute();
         if (count($user) === 0) return false;
+
         $user = $user[0];
         $pfield = self::$pass_field;
         
         $salt_field = self::$config["salt_field"];
-        if ( (!is_null($salt_field)) &&  isset($user->$salt_field)){
+        if ( (!is_null($salt_field)) &&  isset($user->$salt_field))
+        {
             $password .= $user->$salt_field;
         }
+
         return password_verify($password, $user->$pfield);
     }
 
@@ -124,7 +129,6 @@ class Auth
         } 
         else 
         {
-            if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
             $_SESSION["m_auth_attempt"]++;
             self::logout();
             return false;

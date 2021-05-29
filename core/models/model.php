@@ -23,7 +23,7 @@ abstract class Model
     // Primary key field name, pretty important, it is used by example 
     // by the delete function which use its values to delete from the model table
     const primary_key = "";
-    const insertable = "";
+    const insertables = "";
 
 
     /**
@@ -43,9 +43,8 @@ abstract class Model
     public static function get_primary_key() : string
     { 
         $class = get_called_class();
-        if ($class::primary_key == ""){
-            Trash::fatal("$class has no primary_key constant !");
-        }
+        if ($class::primary_key == "") Trash::fatal("$class has no primary_key constant !");
+
         return $class::primary_key;
     }
 
@@ -60,18 +59,23 @@ abstract class Model
         return array_diff($fields, $ignores);
     }
 
-    public static function get_insertable() : array 
-    {
-        if ((get_called_class())::insertable === "") return (get_called_class())::get_fields();
-        return (get_called_class())::insertable;
-    }
 
-    public static function get_insertable_fields(array|string $ignores=[]): array 
+
+    public static function get_insertables(array|string $ignores=[]): array 
     {
         if (!is_array($ignores)) $ignores = [$ignores];
 		$model = new (get_called_class());
-        return array_diff($model::insertable ?? [], $ignores);
+        try 
+        {
+            $insertables = array_diff($model::insertables ?? [], $ignores); 
+            return $insertables;
+        } 
+        catch (Exception $e)
+        {
+            Trash::fatal(get_called_class() . " model does not have insertables ! " . $e->getMessage());
+        }
     }
+
 
 	/**
 	 * Check if your class has one or multiples fields,
@@ -146,21 +150,25 @@ abstract class Model
         return self::build_query($fields, Query::READ);
     }
 
+
     public static function get_all(): Query
     {
         return self::build_query(null, Query::READ);
     }
+
 
     public static function update(): Query
     {
         return self::build_query([], Query::UPDATE);
     }
 
+
     public static function insert(...$fields): Query
     {
         if (count($fields) == 0) $fields = null;
         return self::build_query($fields, Query::CREATE);
     }
+
 
     public static function delete_from(): Query
     {
@@ -191,7 +199,7 @@ abstract class Model
      */
     public function save(bool $return_query = false)
     {
-        $fields = $this::get_insertable();
+        $fields = $this::get_insertables();
 
         if ($this::primary_key === "") Trash::fatal('Object has no $primary_key field value');
         $primary = $this::primary_key;
@@ -209,23 +217,64 @@ abstract class Model
 
 
     /**
+     * Transform any non-associative array to put fields names as keys
+     * to existants values
+     * You can give an associative array it will be ignored
+     */
+    public static function adapt_non_assoc_array(array &$data, array $model_field=null)
+    {
+        $model_fields = $model_field ?? (get_called_class())::get_fields();
+		// Build an associative array if the one given is "value-only"
+		// This condition is true if $data is non-associative
+		if (array_keys($data) === range(0, count($data)-1)) 
+		{
+			if (count($model_fields) !== count($data))
+            {
+                throw new Exception("Non associative array size doesn't match the model column number ! (array=".count($model_fields).", model=".count($data).")");
+            } 
+			
+            foreach (range(0, count($data)-1) as $i)
+			{
+				$data[$model_fields[$i]] = $data[$i];
+				unset($data[$i]);
+			}
+		}
+    }
+
+
+    /**
+     * Given an array, this function filter every non insertables keys
+     */
+    public static function keep_only_insertables(array &$data)
+    {
+        $model_name = get_called_class();
+        $fields = $model_name::get_insertables();
+
+        foreach ($data as $key => $value)
+        {
+            if (!in_array($key, $fields)) unset($data[$key]);
+        }
+    }
+
+
+    /**
      * Given an array respecting the model structure,
      * this function create a new model instance and return it
      * (or null if failed)
      * 
      * Let's say our model look like :
      * Table 1 :
-     *  - cola
-     *  - colb
-     *  - colc
+     *  - col_a
+     *  - col_b
+     *  - col_c
      * 
      * You can either give :
      * 
 	 * ```php
      *  [
-     *      "cola"=>"somevalue",
-     *      "colb"=>"anotherone",
-     *      "colc"=>"again"
+     *      "col_a"=>"somevalue",
+     *      "col_b"=>"anotherone",
+     *      "col_c"=>"again"
      *  ]
      * ```
      * 
@@ -243,7 +292,7 @@ abstract class Model
      * with the same element number as the model fields (here: 3)
 	 * If the given array is non-associative**
      * 
-     * 
+     * Return a Query object
      */
     public static function magic_create(array $data)
 	{
@@ -251,19 +300,7 @@ abstract class Model
         $new_object = new $model_name();
         $model_fields = $model_name::get_fields();
 
-		// Build an associative array if the one given is "value-only"
-		// This condition is true if $data is non-associative
-		if ( array_keys($data) === range(0, count($data)-1) ) 
-		{
-			if ( count($model_fields) !== count($data) ) {
-				throw new Exception("Non associative array size doesn't match the model column number ! (array=".count($model_fields).", model=".count($data).")");
-			};
-			foreach (range(0, count($data)-1) as $i)
-			{
-				$data[$model_fields[$i]] = $data[$i];
-				unset($data[$i]);
-			}
-		}
+        $new_object::adapt_non_assoc_array($data);
 		
 		foreach ($data as $key => $value)
 		{
@@ -279,19 +316,19 @@ abstract class Model
      * 
      * This model behave the same as magic_create but 
      * insert an item instead of returning is
+     * 
+     * Return a Query object
      */
     public static function magic_insert(array $data) : Query 
-	{
-        $new_object = self::magic_create($data);
-        if ($new_object === null) return null;
+    {
+        $model_name = get_called_class();
 
-        $fields_to_insert = ( array_keys($data) !== range(0, count($data) - 1) ) ?
-		array_keys($data) : $new_object::get_insertable();
+        $model_name::adapt_non_assoc_array($data, $model_name::get_insertables());
+        $model_name::keep_only_insertables($data);
 
-        $query = get_called_class()::build_query($fields_to_insert, Query::CREATE);
-        $object_values = array_values($data);
-		$query->values(...$object_values);
+        $query = $model_name::insert(...array_keys($data));
+        $query->values(...array_values($data));
 
-        return $query;
+		return $query;
     }
 }

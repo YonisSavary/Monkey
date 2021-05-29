@@ -12,7 +12,7 @@
 
 <testsuites>
   <testsuite name="Monkey And Apps Tests">
-    <directory>./*/tests/</directory>
+    <directory>./core/tests</directory>
   </testsuite>
   <!--
 

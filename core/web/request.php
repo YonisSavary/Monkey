@@ -70,7 +70,9 @@ class Request
 		{
 			$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
 			$req->method = $_SERVER["REQUEST_METHOD"];
-		} catch (Exception $e){
+		} 
+		catch (Exception $e)
+		{
 			$req->path = null;
 			$req->method = null;
 			array_push($req->errors, $e->getMessage());
@@ -78,7 +80,6 @@ class Request
 
 		return $req;
 	}
-
 
 
 	public static function current() : Request|null
@@ -136,7 +137,7 @@ class Request
 			if (preg_match("/{.+:.+}/", $pattern))
 			{
 				$slug_name = explode(":", $slug_name)[1];
-				foreach (Route::SLUGS_TYPES as $type => $void)
+				foreach (array_keys(Route::SLUGS_TYPES) as $type)
 				{
 					if (!preg_match($type, $pattern)) continue;
 					$slugs[$slug_name] = self::get_slug_right_type($slug_value);
@@ -164,7 +165,7 @@ class Request
      * @param bool $secure Should the function protect values with htmlspecialchars() ?
      * @return mixed Values from the request data, null if nothing was found (so you can use the ?? operator for default value)
      */
-    public function retrieve(array|string $keys, int $mode=self::AUTO, bool $secure=true) : mixed
+    public function retrieve(array|string $keys, int $requested_mode=self::AUTO, bool $secure=true) : mixed
     {
 		$one_param = (!is_array($keys));
         if ($one_param) $keys = [$keys];
@@ -179,10 +180,11 @@ class Request
         $values = [];
         foreach ($keys as $k)
         {
-			foreach ($storages as $the_mode => $the_storage)
+			foreach ($storages as $storage_mode => $the_storage)
 			{
-				if ( (($mode & $the_mode) !== $the_mode)   
-				||   (!isset($the_storage[$k]))   ){
+				if ( (($requested_mode & $storage_mode)=== 0 )   
+				||   (!isset($the_storage[$k])) )
+				{
 					// If the asked mode doesn't match or the storage doesn't hold any value
 					// We skip it
 					$values[$k] = null;
