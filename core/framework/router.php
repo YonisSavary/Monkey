@@ -254,6 +254,8 @@ class Router
 			$req->build_slugs($route->path);
             Request::set_current($req);
 
+
+            Hooks::execute_event("pre_middlewares");
 			// Executing Callbacks
 			foreach ($route->middlewares ?? [] as $middleware_name)
 			{
@@ -265,9 +267,13 @@ class Router
                 if ($res instanceof Request) Request::set_current($res);
 			}
 
+            Hooks::execute_event("post_middlewares");
+            Hooks::execute_event("pre_controllers");
+
             try 
             {
                 $response = self::execute_route_callback($route->callback);
+                Hooks::execute_event("post_controllers");
                 if ($return_response) return $response;
                 Response::reveal_if_response($response); 
                 exit(0);            

@@ -4,6 +4,7 @@ namespace Monkey\Web;
 
 use Closure;
 use Monkey\Framework\AppLoader;
+use Monkey\Framework\Hooks;
 use Monkey\Storage\Config;
 use Monkey\Framework\Router;
 
@@ -96,6 +97,7 @@ fn($fatal_error)=> Trash::get_error_page("Error 500 : Internal Server Error !",
 
 Trash::on("fatal", 
 function($custom_message = null) {
+    Hooks::execute_event("shutdown");
     $fatal_error = error_get_last();
     // If a custom_message is given, it means a fatal error was manually called, so we display it
     // If no error happenned, we don't have something to debug then (it means everything went fine)

@@ -1,6 +1,5 @@
 <?php
 
-
 if (str_ends_with(getcwd(), "public")) chdir("..");
 
 // Requiring AppLoader to load the Framework
@@ -15,8 +14,6 @@ foreach ($basefiles as $intern_file)
 
 // Loading Vendor Files
 if (file_exists("vendor/autoload.php")) require_once "vendor/autoload.php";
-
-
 
 register_shutdown_function( fn()=> Monkey\Web\Trash::fatal());
 
@@ -38,3 +35,5 @@ Monkey\Framework\Router::init();
 Monkey\Dist\DB::init();
 Monkey\Services\Auth::init();
 
+Monkey\Framework\Hooks::execute_event("loaded");
+Monkey\Framework\Hooks::execute_event("initialized");
