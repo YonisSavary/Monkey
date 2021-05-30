@@ -108,12 +108,14 @@ class AutoCRUD
     }
 
 
-    public static function set_middlewares(array $middlewares){
+    public static function set_middlewares(array|string $middlewares){
+        if (!is_array($middlewares)) $middlewares = [$middlewares];
         self::$middlewares = $middlewares;
     }
 
 
-    public static function set_methods(array $methods){
+    public static function set_methods(array|string $methods){
+        if (!is_array($methods)) $methods = [$methods];
         self::$methods = $methods;
     }
 
