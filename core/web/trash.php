@@ -3,6 +3,7 @@
 namespace Monkey\Web;
 
 use Closure;
+use Error;
 use Monkey\Framework\AppLoader;
 use Monkey\Framework\Hooks;
 use Monkey\Storage\Config;
@@ -19,7 +20,7 @@ class Trash
 {
     static $error_callbacks = [];
 
-    public static function on(string $error_code, string|Closure|array $callback): void
+    public static function on(string $error_code, Closure $callback): void
     {
         self::$error_callbacks[$error_code] = $callback;
     }
@@ -27,9 +28,8 @@ class Trash
     public static function send(string $error, ...$args): Response|null
 	{
         $callback = self::$error_callbacks[$error] ?? null;
-
-        if (is_callable($callback)) return $callback(...$args);
-        $res = Router::execute_route_callback($callback, $args);
+        $res = $callback(...$args);
+		
         if ($res instanceof Response){
             $res->reveal();
             exit(1);
@@ -101,9 +101,10 @@ function($custom_message = null) {
     $fatal_error = error_get_last();
     // If a custom_message is given, it means a fatal error was manually called, so we display it
     // If no error happenned, we don't have something to debug then (it means everything went fine)
-    if ($custom_message === null && is_null($fatal_error)){
-        return null;
-    }
+    if (is_null($fatal_error) && ($custom_message===null)) return null;
+
+	print_r($custom_message);
+
     ob_start();
     ?>
     <style>
