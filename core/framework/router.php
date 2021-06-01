@@ -102,6 +102,7 @@ class Router
      */
     public static function redirect(string $path) : void
     {
+        Logger::text("Redirecting to $path", Logger::FRAMEWORK);
         header("Location: $path");
         exit(0);
     }
@@ -235,7 +236,7 @@ class Router
     public static function route(Request $req, bool $return_response=false)
     {
         Request::set_current($req);
-        Logger::text( "Routing : " . $req->method . " " . $req->path );
+        Logger::text( $req->method . " " . $req->path, Logger::FRAMEWORK);
 
         $bad_method_route = null; // Store the latest bad method route for 405 error
         $type_error_route = null; // Store the laster route for bad slugs type

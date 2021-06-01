@@ -17,7 +17,14 @@ if (file_exists("vendor/autoload.php")) require_once "vendor/autoload.php";
 
 register_shutdown_function( function(){
     Monkey\Framework\Hooks::execute_event("shutdown");
-	Monkey\Web\Trash::fatal();
+
+    $fatal_error = error_get_last();
+    // If a custom_message is given, it means a fatal error was manually called, so we display it
+    // If no error happenned, we don't have something to debug then (it means everything went fine)
+    if (!is_null($fatal_error))
+	{
+		Monkey\Web\Trash::fatal($fatal_error["message"]);
+	}
 });
 
 /*       _________________________________________

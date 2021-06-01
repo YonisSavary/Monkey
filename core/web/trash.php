@@ -28,6 +28,7 @@ class Trash
 
     public static function send(string $error, ...$args): Response|null
 	{
+        Logger::text("event error \"$error\" called !", Logger::FRAMEWORK);
         $callback = self::$error_callbacks[$error] ?? null;
         $res = $callback(...$args);
 		
@@ -78,31 +79,8 @@ fn($request_path)=> Trash::get_error_page("Error 404 : Page Not found !", "\"".$
 Trash::on("405",    
 fn($request_path, $method)=> Trash::get_error_page("Error 405 : Bad Method !", "$method method is not allowed for \"".$request_path."\" route"));
 
-/*
-Trash::on("fatal", 
-fn($fatal_error)=> Trash::get_error_page("Error 500 : Internal Server Error !", 
-"
-<p>Error : <b>".$fatal_error->getMessage()." </b></p>
-<p>
-    Error Trace : 
-    <ul>".
-    join("", 
-        array_map( fn($error_str)=>"<li>$error_str</li>",
-        explode("\n", $fatal_error->getTraceAsString()))
-    )
-    ."</ul>
-</p>" 
-));
-*/
-
-
 Trash::on("500", 
 function($custom_message = null) {
-    $fatal_error = error_get_last();
-    // If a custom_message is given, it means a fatal error was manually called, so we display it
-    // If no error happenned, we don't have something to debug then (it means everything went fine)
-    if (is_null($fatal_error) && ($custom_message===null)) return null;
-
     Logger::text("Received fatal error : $custom_message !", Logger::ERROR, true);
     ob_start();
     ?>
