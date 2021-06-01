@@ -8,6 +8,7 @@ use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
 use Monkey\Framework\Route;
+use Monkey\Services\Logger;
 use TypeError;
 
 class Router 
@@ -101,6 +102,7 @@ class Router
      */
     public static function redirect(string $path) : void
     {
+        Logger::text("Redirecting to $path", Logger::FRAMEWORK);
         header("Location: $path");
         exit(0);
     }
@@ -233,6 +235,9 @@ class Router
      */
     public static function route(Request $req, bool $return_response=false)
     {
+        Request::set_current($req);
+        Logger::text( $req->method . " " . $req->path, Logger::FRAMEWORK);
+
         $bad_method_route = null; // Store the latest bad method route for 405 error
         $type_error_route = null; // Store the laster route for bad slugs type
         $type_error_message = "";
@@ -252,7 +257,6 @@ class Router
             }
 
 			$req->build_slugs($route->path);
-            Request::set_current($req);
 
 
             Hooks::execute_event("pre_middlewares");

@@ -7,3 +7,5 @@ app_test_for_monkey
 
 composer.json
 composer.lock
+
+*.log
