@@ -15,7 +15,10 @@ foreach ($basefiles as $intern_file)
 // Loading Vendor Files
 if (file_exists("vendor/autoload.php")) require_once "vendor/autoload.php";
 
-register_shutdown_function( fn()=> Monkey\Web\Trash::fatal());
+register_shutdown_function( function(){
+    Monkey\Framework\Hooks::execute_event("shutdown");
+	Monkey\Web\Trash::fatal();
+});
 
 /*       _________________________________________
 	* _____/   INTITIALISING FRAMEWORKS COMPONENTS   \_____ */

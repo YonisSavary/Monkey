@@ -44,7 +44,7 @@ class Trash
      */
     public static function fatal(string $message=null): void
     {
-        Trash::send("fatal", $message);
+        Trash::send("500", $message);
     }
 
 
@@ -95,9 +95,8 @@ fn($fatal_error)=> Trash::get_error_page("Error 500 : Internal Server Error !",
 */
 
 
-Trash::on("fatal", 
+Trash::on("500", 
 function($custom_message = null) {
-    Hooks::execute_event("shutdown");
     $fatal_error = error_get_last();
     // If a custom_message is given, it means a fatal error was manually called, so we display it
     // If no error happenned, we don't have something to debug then (it means everything went fine)
