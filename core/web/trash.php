@@ -102,8 +102,6 @@ function($custom_message = null) {
     // If no error happenned, we don't have something to debug then (it means everything went fine)
     if (is_null($fatal_error) && ($custom_message===null)) return null;
 
-	print_r($custom_message);
-
     ob_start();
     ?>
     <style>
