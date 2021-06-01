@@ -68,7 +68,7 @@ class Request
 		$req = new Request();
 		try 
 		{
-			$req->path = preg_replace("/\?.+/", "", $_SERVER["REQUEST_URI"]);
+			$req->path = preg_replace("/\?.{0,}/", "", $_SERVER["REQUEST_URI"]);
 			$req->method = $_SERVER["REQUEST_METHOD"];
 		} 
 		catch (Exception $e)
