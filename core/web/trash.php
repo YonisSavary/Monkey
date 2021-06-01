@@ -8,6 +8,7 @@ use Monkey\Framework\AppLoader;
 use Monkey\Framework\Hooks;
 use Monkey\Storage\Config;
 use Monkey\Framework\Router;
+use Monkey\Services\Logger;
 
 /**
  * This class is here to handle errors,
@@ -102,6 +103,7 @@ function($custom_message = null) {
     // If no error happenned, we don't have something to debug then (it means everything went fine)
     if (is_null($fatal_error) && ($custom_message===null)) return null;
 
+    Logger::text("Received fatal error : $custom_message !", Logger::ERROR, true);
     ob_start();
     ?>
     <style>

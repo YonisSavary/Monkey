@@ -38,5 +38,7 @@ Monkey\Framework\Router::init();
 Monkey\Dist\DB::init();
 Monkey\Services\Auth::init();
 
+Monkey\Services\Logger::init();
+
 Monkey\Framework\Hooks::execute_event("loaded");
 Monkey\Framework\Hooks::execute_event("initialized");

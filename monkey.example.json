@@ -24,5 +24,10 @@
 		"salt_field": null,
 		"hop_duration": 300,
 		"duration": 3600
+	},
+
+	"logger": {
+		"enabled": true,
+		"file": "custom.log"
 	}
 }
