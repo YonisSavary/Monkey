@@ -4,6 +4,7 @@ namespace Middlewares;
 
 use Monkey\Framework\Router;
 use Monkey\Services\Auth;
+use Monkey\Web\Response;
 use Monkey\Web\Trash;
 
 class AuthMiddleware 
@@ -15,7 +16,7 @@ class AuthMiddleware
     {
         if (!Auth::is_logged())
         {
-            if (self::REDIRECT_REQUEST==true) Router::redirect(AuthMiddleware::NOT_LOGGED_REDIRECT);
+            if (self::REDIRECT_REQUEST==true) return Response::redirect(AuthMiddleware::NOT_LOGGED_REDIRECT);
             return Trash::send("401");
         }
     }

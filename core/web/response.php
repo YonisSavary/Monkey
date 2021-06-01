@@ -2,6 +2,8 @@
 
 namespace Monkey\Web;
 
+use Monkey\Services\Logger;
+
 /**
  * This class is what a controller should return
  */
@@ -57,7 +59,7 @@ class Response
     public function reveal(bool $skip_header=false) : void 
     {
         if (!$skip_header) header($this->header);
-        echo $this->content;
+        if ($this->content !== null) echo $this->content;
     }
 
 
@@ -93,4 +95,20 @@ class Response
         
         die();
     }
+
+
+    /**
+     * Return a Response that will redirect the client
+     * 
+     * @param string $path Path to redirect to
+     */
+    public static function redirect(string $path) : Response
+    {
+        Logger::text("Redirecting to $path", Logger::FRAMEWORK);
+        $r = new Response();
+        $r->header = "Location: $path";
+        $r->content = null;
+        return $r;
+    }
+
 }

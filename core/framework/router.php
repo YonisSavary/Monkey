@@ -99,12 +99,12 @@ class Router
      * Redirect the client to a route
      * 
      * @param string $path Path to redirect to
+     * @deprecated Use Response::redirect now !
      */
     public static function redirect(string $path) : void
     {
-        Logger::text("Redirecting to $path", Logger::FRAMEWORK);
-        header("Location: $path");
-        exit(0);
+        Response::redirect($path)->reveal();
+        die();
     }
 
 
