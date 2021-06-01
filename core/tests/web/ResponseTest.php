@@ -24,7 +24,7 @@ class ResponseTest extends TestCase
 		
 	}
 
-	public function test_send_file()
+	public function test_file()
 	{
 		
 	}
