@@ -29,6 +29,10 @@ class Logger
             file_put_contents(self::$config["file"], 
             "#Software: Monkey Framework for PHP8\n#Fields: date\ttime\tclient\tmethod\ttype\tmessage\tbacktrace\n");
         }
+
+        $ignore = self::$config["ignore"] ?? [];
+        if (!is_array($ignore)) $ignore = [$ignore];
+        self::$config["ignore"] = $ignore;
     }
 
 
@@ -42,7 +46,7 @@ class Logger
             return false;
         }        
         
-        if (in_array($type, self::$config["ignore"] ?? []))
+        if (in_array($type, self::$config["ignore"]))
         {
             return false;
         }
