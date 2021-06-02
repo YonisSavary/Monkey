@@ -17,6 +17,8 @@ class Auth
     static $login_field = null;
     static $pass_field = null;
 
+    static $initialized = false;
+
     /**
      * Given a clear password, return a Hash made with an algorithm and a cost
      * 
@@ -38,6 +40,8 @@ class Auth
     {
         self::$config = Config::get("auth") ?? ["enabled" => false];
         if (self::$config["enabled"] !== true) return null;
+
+        self::$initialized = true;
 
         if (!isset($_SESSION["m_auth_logged"])) $_SESSION["m_auth_logged"] = false;
         if (!isset($_SESSION["m_auth_attempt"])) $_SESSION["m_auth_attempt"] = 0;
@@ -120,6 +124,7 @@ class Auth
      */
     public static function attempt(string|int $login, string $password): bool
     {
+        if (self::$initialized !== true) Trash::fatal("Trying to use Auth as is it not enabled !");
         if (self::check($login, $password))
         {
             $_SESSION["m_auth_attempt"] = 0;

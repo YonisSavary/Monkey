@@ -3,7 +3,7 @@
 namespace Monkey\Framework;
 
 use Monkey\Storage\Config;
-use Monkey\Storage\Register;
+use Monkey\Storage\Cache;
 
 /**
  * This class can load "applications", an application can be made of some directories :
@@ -19,7 +19,7 @@ use Monkey\Storage\Register;
  */
 class AppLoader
 {
-    const CACHE_FILE_NAME = "cached_apploader";
+    const CACHE_FILE_NAME = "apploader";
     const VIEWS_DIRECTORY_NAME = "views";
     const CONFIG_FILE_NAME = "monkey.json";
 	const AUTOLOAD_DIRECTORIES_NAMES =  [
@@ -145,7 +145,7 @@ class AppLoader
         }
         AppLoader::$autoload_list = $to_loads; 
 
-        self::write_to_register();
+        self::write_to_Cache();
         self::$loaded_directories = true;
 
         return true;
@@ -155,14 +155,14 @@ class AppLoader
 
     /**
      * Write the current AppLoader configuration 
-     * to the register (only if the configuration
+     * to the Cache (only if the configuration
      * allow it)
      */
-    public static function write_to_register()
+    public static function write_to_Cache()
     {
-        if (Config::get(AppLoader::CACHE_FILE_NAME) === true)
+        if (Config::get("cached_apploader") === true)
         {
-            Register::set(AppLoader::CACHE_FILE_NAME, [
+            Cache::set(AppLoader::CACHE_FILE_NAME, [
                 "views_directories" => AppLoader::$views_directories,
                 "autoload_list"     => AppLoader::$autoload_list,
                 "config_paths"      => AppLoader::$config_paths
@@ -172,17 +172,17 @@ class AppLoader
 
 
     /**
-     * Read the AppLoader config from the register
+     * Read the AppLoader config from the Cache
      * (only if the configuration allow it)
      */
-    public static function read_from_register()
+    public static function read_from_Cache()
     {
 		// If "cached_apploader" is true
 		// And "cached_apploader.json" exists 
-        if ( Config::get(AppLoader::CACHE_FILE_NAME)    === true 
-        &&   Register::get(AppLoader::CACHE_FILE_NAME)  !== null )
+        if ( Config::get("cached_apploader", false) === true 
+        &&   Cache::exists(AppLoader::CACHE_FILE_NAME) )
         {
-            $data = Register::get(AppLoader::CACHE_FILE_NAME);
+            $data = Cache::get(AppLoader::CACHE_FILE_NAME);
             AppLoader::$views_directories   = $data["views_directories"];
             AppLoader::$autoload_list       = $data["autoload_list"];
             AppLoader::$config_paths        = $data["config_paths"];
@@ -197,7 +197,7 @@ class AppLoader
      * This function :
      * - Initialize the component
      * - Find the applications paths
-     * - Load the php files with `spl_autoload_register`
+     * - Load the php files with `spl_autoload_Cache`
      * 
      */
     public static function init() : void
@@ -207,7 +207,7 @@ class AppLoader
 
         self::$app_directories = $app_directories;
 
-        self::read_from_register();
+        self::read_from_Cache();
         self::load_all_applications();    
 
         foreach (AppLoader::$autoload_list as $dir)

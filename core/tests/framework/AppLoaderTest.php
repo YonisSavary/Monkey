@@ -42,12 +42,12 @@ class AppLoaderTest extends TestCase
 
     }
 
-    public function test_write_to_register()
+    public function test_write_to_Cache()
     {
 
     }
 
-    public function test_read_from_register()
+    public function test_read_from_Cache()
     {
 
     }

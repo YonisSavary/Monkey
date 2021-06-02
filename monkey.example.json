@@ -1,5 +1,5 @@
 {
-    "register_store": "./cache",
+    "cache_directory": "cache",
 	"app_directories": "./app",
 	"app_url_prefix": "/assets",
 	"cached_apploader": false,

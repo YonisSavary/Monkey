@@ -1,8 +1,8 @@
-.git
-monkey.json
 vendor
-config/*.json
 .phpunit.result.cache
+
+storage/cache
+monkey.json
 app_test_for_monkey
 
 composer.json

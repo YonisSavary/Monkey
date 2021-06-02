@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class RegisterTest extends TestCase
+class CacheTest extends TestCase
 {
 	public function test_load_files()
 	{
