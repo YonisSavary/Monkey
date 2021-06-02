@@ -59,7 +59,7 @@ class Logger
 
         $method = Request::current()->method;
 
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? "unknown";
 
         $to_write = date("Y-m-d\tH:i:s") . "\t$ip\t$method\t$type\t'$to_write'\t$calling_functions\n";
         

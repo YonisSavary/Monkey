@@ -149,6 +149,7 @@ class $class_name extends Model
 
         $model_name = ModelFetcher::get_camel_case_of($table_name);
         $model_directory = self::get_new_model_path($app_directory);
+        if (!is_dir($model_directory)) mkdir($model_directory, 0777, true);
         $path = $model_directory . $model_name . ".php";
 
         if (!$force_overwrite) self::ask_for_overwriting_file($path);
