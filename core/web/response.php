@@ -23,7 +23,7 @@ class Response
     public function __construct(string $content=null, string|array $headers=[], int $type=Response::HTML) 
     {
         if (!is_array($headers)) $headers = [$headers];
-        $this->header = $headers;
+        $this->headers = $headers;
         $this->content = $content;
         $this->type = $type;
     }
