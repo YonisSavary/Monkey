@@ -38,12 +38,19 @@ class Storage
     }
 
 
+    public static function fix_path(string &$path)
+    {
+        if (!str_ends_with($path, "/")) $path .= "/";
+        $path = preg_replace("/\.{1,}\//", "", $path);
+    }
+
+
     public static function init()
     {
         self::$path = getcwd();
-        if (!str_ends_with(self::$path, "/")) self::$path .= "/";
+        self::fix_path(self::$path);
         self::$path .= Config::get("storage_directory", "storage");
         if (!is_dir(self::$path)) mkdir(self::$path, 0777, true);
-        if (!str_ends_with(self::$path, "/")) self::$path .= "/";
+        self::fix_path(self::$path);
     }
 }

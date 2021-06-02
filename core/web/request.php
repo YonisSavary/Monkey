@@ -4,6 +4,8 @@ namespace Monkey\Web;
 
 use Exception;
 use Monkey\Framework\Route;
+use Monkey\Storage\Cache;
+use Monkey\Storage\Storage;
 
 /**
  * This class has no other purpose than store
@@ -198,4 +200,30 @@ class Request
 		if ($values === []) return null;
         return $values;
     }
+
+	public function get_files_names() : array
+	{
+		return array_keys($this->files);
+	}
+
+	public function move_upload(string $filename, string $path_to, string $override_name=null)
+	{
+		if (!isset($this->files[$filename])) Trash::fatal("'$filename' File was not uploaded");
+		$file = $this->files[$filename];
+		$new_filename = $override_name ?? $file["name"];
+		Storage::fix_path($path_to);
+		$path_to = Storage::get_path($path_to);
+		$new_path = $path_to . $new_filename;
+        if (!is_dir($path_to)) mkdir($path_to, 0777, true);
+		move_uploaded_file($file["tmp_name"], $new_path);
+	}
+
+	public function move_all_uploads_to(string $path, string $name_prefix=null)
+	{
+		foreach ($this->files as $name => $file)
+		{
+			$filename = ($name_prefix == null) ? $file["name"] : $name_prefix . $file["name"];
+			$this->move_upload($name, $path, $filename);
+		}
+	}
 }
