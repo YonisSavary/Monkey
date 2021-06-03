@@ -32,11 +32,13 @@ register_shutdown_function( function(){
 
 // Load Configuration And Caches
 Monkey\Storage\Config::init();
-Monkey\Storage\Storage::init();
-Monkey\Storage\Cache::init();
 
 // Load Application(s)
 Monkey\Framework\AppLoader::init();
+
+// Load Storages Components 
+Monkey\Storage\Storage::init();
+Monkey\Storage\Cache::init();
 
 // Session is loaded after your application files, so 
 // you can avoid PHP incomplete classes in your session
