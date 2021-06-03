@@ -43,7 +43,7 @@ class AutoCRUD
     public static function create(Request $req, string $model): Response
     {
         AutoCRUD::fix_model_classname($model);
-        $fields = $model::get_insertable();
+        $fields = $model::get_insertables();
         $values = $req->retrieve($fields);
         $model::magic_insert($values)->execute();
         return Response::json(["status"=>"done"]);
