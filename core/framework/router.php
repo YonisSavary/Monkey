@@ -3,7 +3,7 @@
 namespace Monkey\Framework;
 
 use Closure;
-use Monkey\Storage\Register;
+use Monkey\Storage\Cache;
 use Monkey\Web\Request;
 use Monkey\Web\Response;
 use Monkey\Web\Trash;
@@ -116,7 +116,7 @@ class Router
      */
     public static function init() : void
     {
-        self::$routes = array_merge(self::$routes,  Register::get("routes", []));
+        self::$routes = array_merge(self::$routes,  Cache::get("routes", []));
     }
 
 

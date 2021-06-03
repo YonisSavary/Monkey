@@ -3,6 +3,7 @@
 namespace Monkey\Services;
 
 use Monkey\Storage\Config;
+use Monkey\Storage\Storage;
 use Monkey\Web\Request;
 
 class Logger 
@@ -25,8 +26,8 @@ class Logger
         self::load_config();
         if (self::$config["enabled"] !== true) return false;
         self::$config["file"] = self::$config["file"] ?? "monkey.log";
-        if (!file_exists(self::$config["file"])){
-            file_put_contents(self::$config["file"], 
+        if (!Storage::exists(self::$config["file"])){
+            Storage::write(self::$config["file"], 
             "#Software: Monkey Framework for PHP8\n#Fields: date\ttime\tclient\tmethod\ttype\tmessage\tbacktrace\n");
         }
 
@@ -46,7 +47,7 @@ class Logger
             return false;
         }        
         
-        if (in_array($type, self::$config["ignore"]))
+        if (in_array($type, self::$config["ignore"] ?? []))
         {
             return false;
         }
@@ -64,7 +65,7 @@ class Logger
         $to_write = date("Y-m-d\tH:i:s") . "\t$ip\t$method\t$type\t'$to_write'\t$calling_functions\n";
         
         if ($double_jump) $to_write .= "\n";
-        file_put_contents(self::$config["file"], $to_write , FILE_APPEND);
+        Storage::write(self::$config["file"], $to_write , FILE_APPEND);
     }
 
     public static function object($objects) 

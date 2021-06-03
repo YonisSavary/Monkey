@@ -32,7 +32,8 @@ register_shutdown_function( function(){
 
 // Load Configuration And Caches
 Monkey\Storage\Config::init();
-Monkey\Storage\Register::init();
+Monkey\Storage\Storage::init();
+Monkey\Storage\Cache::init();
 
 // Load Application(s)
 Monkey\Framework\AppLoader::init();

@@ -19,7 +19,7 @@ class Config
 	 * 
 	 * @param string|array $path A file Path or an array of
      */
-    public static function read_file(string|array $path)
+    public static function read_file(string|array $path=[])
 	{
 		if (is_array($path))
         {
@@ -63,7 +63,7 @@ class Config
 
 
     /**
-     * Get a key from the register, $default can be given to 
+     * Get a key from the Cache, $default can be given to 
      * replace the value if inexistant
      * 
      * @param string $key Key to reach
