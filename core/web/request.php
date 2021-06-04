@@ -5,7 +5,6 @@ namespace Monkey\Web;
 use Closure;
 use Exception;
 use Monkey\Framework\Route;
-use Monkey\Storage\Cache;
 use Monkey\Storage\Storage;
 
 /**
@@ -216,16 +215,12 @@ class Request
         {
 			foreach ($storages as $storage_mode => $the_storage)
 			{
-				if ( (($requested_mode & $storage_mode)=== 0 )   
-				||   (!isset($the_storage[$k])) )
+				if ((($requested_mode & $storage_mode) !== 0 ) 
+				&&  (isset($the_storage[$k])) )
 				{
-					// If the asked mode doesn't match or the storage doesn't hold any value
-					// We skip it
-					$values[$k] = null;
-					continue;
+					$values[$k] = ($secure) ? htmlspecialchars($the_storage[$k]) : $the_storage[$k];
+					break;
 				}
-				$values[$k] = ($secure) ? htmlspecialchars($the_storage[$k]) : $the_storage[$k];
-				break;
 			}
         }
 		if ($one_param === true) $values = $values[$keys[0]] ?? [];
