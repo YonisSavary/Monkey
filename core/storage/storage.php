@@ -18,6 +18,7 @@ class Storage
 
     public static function write(string $path, mixed $content, int $flags = 0)
     {
+        if($path === null || $content === null) return false;
         $path = self::get_path($path);
         if (!is_dir(dirname($path))) mkdir(dirname($path), 0777, true);
         file_put_contents($path, $content, $flags);

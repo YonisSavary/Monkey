@@ -8,7 +8,7 @@ use Monkey\Web\Request;
 
 class Logger 
 {
-    static $config = [];
+    static $config = null;
 
     const INFO = "INFO";
     const DEBUG = "DEBUG";
@@ -16,17 +16,23 @@ class Logger
     const GRAVE = "GRAVE";
     const FRAMEWORK = "FRAMEWORK";
 
+
     public static function load_config()
     {
-        self::$config = Config::get("logger", ["enabled" => false]); 
+        if (self::$config !== null) return false;
+        self::$config = Config::get("logger", ["enabled" => false]);
+        return true;
     }
+
 
     public static function init()
     {
         self::load_config();
-        if (self::$config["enabled"] !== true) return false;
+        if ((self::$config["enabled"]??false) !== true) return false;
+
         self::$config["file"] = self::$config["file"] ?? "monkey.log";
-        if (!Storage::exists(self::$config["file"])){
+        if (!Storage::exists(self::$config["file"]))
+        {
             Storage::write(self::$config["file"], 
             "#Software: Monkey Framework for PHP8\n#Fields: date\ttime\tclient\tmethod\ttype\tmessage\tbacktrace\n");
         }
@@ -39,8 +45,9 @@ class Logger
 
     public static function text(string|array $to_write, string $type=Logger::INFO, bool $double_jump=false) 
     {
-        if (self::$config === []) self::load_config();
-        if (self::$config["enabled"] !== true) return false;
+        self::load_config();
+        if ((self::$config["enabled"]??false) !== true) return false;
+
         if (is_array($to_write))
         {
             foreach ($to_write as $line) self::text($line, $type, (end($to_write) === $line) & $double_jump);
@@ -68,15 +75,18 @@ class Logger
         Storage::write(self::$config["file"], $to_write , FILE_APPEND);
     }
 
+
     public static function object($objects) 
     {
-        if (self::$config === []) self::load_config();
-        if (self::$config["enabled"] !== true) return false;
+        self::load_config();
+        if ((self::$config["enabled"]??false) !== true) return false;
+
         if (is_array($objects))
         {
             foreach ($objects as $obj) self::object($obj);
             return false;
         }
+
         self::text(json_encode($objects));
     }
 }
