@@ -2,6 +2,7 @@
 
 namespace Monkey\Web;
 
+use Closure;
 use Exception;
 use Monkey\Framework\Route;
 use Monkey\Storage\Cache;
@@ -39,11 +40,12 @@ class Request
 
 	public $errors = [];
 
-	public static $current = null;
+	static $current = null;
 
 
     // In case you want to store more informations
     public $storage = [];
+	public $uploaded_files = [];
 
     public function __construct(string $path=null, string $method=null)
     {
@@ -54,11 +56,41 @@ class Request
         $this->body		= $_REQUEST;
 
 		$this->files 	= $_FILES;
+		$this->discompose_files_data();
+
 		$this->cookie 	= $_COOKIE;
 		
 		$this->path = $path;
 		$this->method = $method;
     }
+
+
+	public function discompose_files_data()
+	{
+		if (count($this->files["name"] ?? []) > 0) return false;
+
+		foreach (array_keys($this->files) as $form_name)
+		{
+			$keys = array_keys($this->files[$form_name]);
+			$file_number = count($this->files[$form_name]["name"]);
+	
+			$new_objects = [];
+	
+			for ($i=0; $i<$file_number; $i++)
+			{
+				$file = [];
+				foreach ($keys as $key)
+				{
+					$file[$key] = $this->files[$form_name][$key][$i];
+				}
+				array_push($new_objects, $file);
+			}
+	
+			$this->files[$form_name] = $new_objects;
+		}
+
+		return true;
+	}
 
 
 	/**
@@ -201,29 +233,46 @@ class Request
         return $values;
     }
 
+
 	public function get_files_names() : array
 	{
 		return array_keys($this->files);
 	}
 
-	public function move_upload(string $filename, string $path_to, string $override_name=null)
+
+	public function get_uploaded_files() : array 
 	{
-		if (!isset($this->files[$filename])) Trash::fatal("'$filename' File was not uploaded");
-		$file = $this->files[$filename];
-		$new_filename = $override_name ?? $file["name"];
-		Storage::fix_path($path_to);
-		$path_to = Storage::get_path($path_to);
-		$new_path = $path_to . $new_filename;
-        if (!is_dir($path_to)) mkdir($path_to, 0777, true);
-		move_uploaded_file($file["tmp_name"], $new_path);
+		return $this->uploaded_files;
 	}
 
-	public function move_all_uploads_to(string $path, string $name_prefix=null)
+
+	public function move_upload(string $filename, string $path_to, Closure $name_editor=null)
+	{
+		if (!isset($this->files[$filename])) Trash::fatal("'$filename' File was not uploaded");
+		if (!isset($this->files[$filename][0])) $this->files[$filename] = [$this->files[$filename]];
+	
+		foreach ($this->files[$filename] as $file)
+		{
+			$new_filename = $name_editor($file["name"]) ?? $file["name"];
+	
+			Storage::fix_path($path_to);
+			$full_path_to = Storage::get_path($path_to);
+			if (!is_dir($full_path_to)) mkdir($full_path_to, 0777, true);
+	
+			$new_path = $full_path_to . $new_filename;
+			array_push($this->uploaded_files, $path_to . $new_filename);
+	
+			move_uploaded_file($file["tmp_name"], $new_path);
+		}
+
+	}
+
+
+	public function move_all_uploads_to(string $path, Closure $name_editor=null)
 	{
 		foreach ($this->files as $name => $file)
 		{
-			$filename = ($name_prefix == null) ? $file["name"] : $name_prefix . $file["name"];
-			$this->move_upload($name, $path, $filename);
+			$this->move_upload($name, $path, $name_editor);
 		}
 	}
 }
